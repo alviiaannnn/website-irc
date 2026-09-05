@@ -46,8 +46,9 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-6 text-center text-xs text-gray-400">
+        <div className="mt-6 flex justify-between items-center text-xs text-gray-400">
           <p>&copy; {new Date().getFullYear()} IPB Robotic Club. All rights reserved.</p>
+          <Link href="/admin" className="hover:text-white transition-colors">Admin Login</Link>
         </div>
       </div>
     </footer>
