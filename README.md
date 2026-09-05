@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# IPB Robotic Club (IRC) Website
 
-## Getting Started
+This is a modern, dynamic, and responsive website for the IPB Robotic Club, built with Next.js 14, Tailwind CSS, and Supabase.
 
-First, run the development server:
+## Tech Stack
+- **Framework**: Next.js (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS v4
+- **Database & Auth**: Supabase
+- **Forms**: Web3Forms
 
+## Prerequisites
+- Node.js 18.x or later
+- A Supabase account and project
+- A Web3Forms access key
+
+## Setup Instructions
+
+### 1. Install Dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Environment Variables
+Create a `.env.local` file in the root directory and add the following keys:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY=your_web3forms_access_key
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Database Setup (Supabase)
+1. Go to your Supabase project dashboard.
+2. Navigate to the **SQL Editor**.
+3. Copy the contents of `supabase/schema.sql` from this project.
+4. Paste it into the SQL Editor and click **Run**.
+5. This will create all necessary tables, set up Row Level Security (RLS), and insert initial mock data for Site Settings.
 
-## Learn More
+### 4. Create an Admin Account
+To access the `/admin` dashboard, you need to create a user in Supabase:
+1. Go to **Authentication** -> **Users** in your Supabase dashboard.
+2. Click **Add User** -> **Create new user**.
+3. Provide an email and password (e.g., `admin@example.com` / `securepassword`).
+4. You can now use these credentials to log in at `http://localhost:3000/admin/login`.
 
-To learn more about Next.js, take a look at the following resources:
+### 5. Storage Buckets (Optional/Future implementation)
+If you are integrating full file upload logic:
+1. Go to **Storage** in Supabase.
+2. Create a bucket named `images` and make it **Public**.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 6. Development Server
+Run the local development server:
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
+- `src/app`: Next.js App Router pages (Public and Admin routes).
+- `src/components/ui`: Reusable Tailwind UI components.
+- `src/components/layout`: Navbar, Footer, and Admin Sidebar.
+- `src/lib/supabase`: Supabase SSR client utilities.
+- `supabase/schema.sql`: Database schema definition.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deployment
+This Next.js app can be easily deployed to Vercel:
+1. Push the code to GitHub.
+2. Import the project in Vercel.
+3. Add the Environment Variables (`NEXT_PUBLIC_SUPABASE_URL`, etc.).
+4. Deploy!

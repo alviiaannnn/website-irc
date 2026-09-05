@@ -1,69 +1,165 @@
-import Image from "next/image";
+import Image from "next/image"
+import Link from "next/link"
+import { createClient } from "@/lib/supabase/server"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { ArrowRight, ChevronRight } from "lucide-react"
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient()
+
+  // Fetch site settings
+  const { data: settingsData } = await supabase.from("site_settings").select("*")
+  const settings = settingsData?.reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {}) as Record<string, string>
+
+  // Fetch featured projects
+  const { data: projects } = await supabase
+    .from("projects")
+    .select("*, project_images(image_url)")
+    .eq("is_active", true)
+    .order("order_index")
+    .limit(3)
+
+  // Fetch latest achievements
+  const { data: achievements } = await supabase
+    .from("achievements")
+    .select("*")
+    .order("year", { ascending: false })
+    .order("order_index")
+    .limit(3)
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <div>
+      {/* Hero Section */}
+      <section className="relative flex min-h-[90vh] flex-col items-center justify-center overflow-hidden bg-slate-950">
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/hero-bg.png"
+            alt="Hero Background"
+            fill
+            className="object-cover opacity-30"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent" />
+        </div>
+        
+        <div className="container relative z-10 mx-auto px-4 text-center">
+          <div className="mb-8 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm text-white backdrop-blur-sm">
+            <span className="flex h-2 w-2 rounded-full bg-primary mr-2"></span>
+            Advanced Research Laboratory
+          </div>
+          <h1 className="mb-4 text-5xl font-extrabold tracking-tight text-white md:text-7xl lg:text-8xl">
+            {settings?.hero_title || "Satu Jiwa, Kita Bisa!"}
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mx-auto mb-8 max-w-2xl text-xl text-slate-300 md:text-2xl">
+            {settings?.hero_subtitle || "Empowered by Innovation"}
           </p>
+          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Button asChild size="lg" className="h-12 px-8 text-base font-semibold">
+              <Link href="/about">Discover Our Story</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="h-12 px-8 text-base font-semibold bg-transparent border-white text-white hover:bg-white hover:text-slate-900">
+              <Link href="/projects">View Projects</Link>
+            </Button>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* About Overview */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:items-center">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl mb-6">About IPB Robotic Club</h2>
+              <p className="text-lg text-slate-600 mb-6 leading-relaxed">
+                {settings?.about_description || "IPB Robotic Club (IRC) is a functional organization under the mentoring of Directorate of Student Affairs (Ditmawa) IPB University. IRC is a place for student competencies development in robotics, technology, and innovation fields, as well as strategic steps in supporting robotics research at IPB University."}
+              </p>
+              <Button asChild variant="ghost" className="group p-0 hover:bg-transparent text-primary hover:text-primary/80">
+                <Link href="/about" className="inline-flex items-center text-lg font-medium">
+                  Learn more about our departments
+                  <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4">
+                <div className="h-48 rounded-2xl bg-slate-100 p-6 flex flex-col justify-end relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent z-10" />
+                  <div className="relative z-20">
+                    <h3 className="text-xl font-bold text-white mb-1">Agrisena</h3>
+                    <p className="text-slate-200 text-sm">UAV Research Team</p>
+                  </div>
+                </div>
+                <div className="h-64 rounded-2xl bg-primary p-6 flex flex-col justify-end text-white shadow-xl shadow-primary/20">
+                  <h3 className="text-3xl font-bold mb-2">50+</h3>
+                  <p className="text-white/90">Active Members in Technical & Official Departments</p>
+                </div>
+              </div>
+              <div className="flex flex-col gap-4 mt-8">
+                <div className="h-64 rounded-2xl bg-secondary p-6 flex flex-col justify-end text-white shadow-xl shadow-secondary/20">
+                  <h3 className="text-3xl font-bold mb-2">15+</h3>
+                  <p className="text-white/90">National & International Awards</p>
+                </div>
+                <div className="h-48 rounded-2xl bg-slate-100 p-6 flex flex-col justify-end relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent z-10" />
+                  <div className="relative z-20">
+                    <h3 className="text-xl font-bold text-white mb-1">Agrinaya</h3>
+                    <p className="text-slate-200 text-sm">UGV Research Team</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
+      </section>
+
+      {/* Latest Projects */}
+      <section className="py-20 bg-slate-50">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="flex flex-col items-center justify-between gap-4 md:flex-row mb-12">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Latest Projects</h2>
+              <p className="text-slate-500 mt-2 text-lg">Showcasing IRC's innovative developments in robotics.</p>
+            </div>
+            <Button asChild variant="outline">
+              <Link href="/projects">View All Projects</Link>
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {projects && projects.length > 0 ? (
+              projects.map((project) => (
+                <Card key={project.id} className="overflow-hidden border-0 shadow-lg group">
+                  <div className="aspect-video relative bg-slate-200 overflow-hidden">
+                    {project.project_images && project.project_images[0] ? (
+                      <Image
+                        src={project.project_images[0].image_url}
+                        alt={project.title}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center text-slate-400">No Image</div>
+                    )}
+                  </div>
+                  <CardHeader>
+                    <CardTitle className="text-2xl">{project.title}</CardTitle>
+                    <CardDescription className="text-primary font-medium">{project.subtitle}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-slate-600 line-clamp-3">{project.description}</p>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="col-span-3 text-center py-12 text-slate-500">
+                <p>No projects to display.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
     </div>
-  );
+  )
 }
