@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { MapPin, Mail, Instagram, Globe } from "lucide-react"
+import { MapPin, Mail, Camera, Globe } from "lucide-react"
 
 export default function ContactPage() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
@@ -98,7 +98,7 @@ export default function ContactPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <Instagram className="w-6 h-6 text-secondary flex-shrink-0" />
+                    <Camera className="w-6 h-6 text-secondary flex-shrink-0" />
                     <div>
                       <h4 className="font-bold text-slate-900 text-sm">Instagram</h4>
                       <p className="text-slate-500 text-sm mt-1">@irc.ipb</p>
