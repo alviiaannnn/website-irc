@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useState } from "react"
-import { MapPin, Mail, Camera, Globe, Linkedin, Phone } from "lucide-react"
+import { MapPin, Mail, Camera, Globe, Link2 } from "lucide-react"
 
 export default function ContactPage() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
@@ -83,7 +83,7 @@ export default function ContactPage() {
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-lg bg-[#1C3B5E] flex items-center justify-center">
-                    <Linkedin className="w-5 h-5 text-white" />
+                  <Link2 className="w-5 h-5 text-white" />
                   </div>
                   <div>
                     <p className="text-[#1C3B5E] font-bold text-sm">LINKEDIN</p>
