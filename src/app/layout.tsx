@@ -4,7 +4,7 @@ import "./globals.css"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 
 export const metadata: Metadata = {
   title: "IPB Robotic Club",
@@ -17,8 +17,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} min-h-screen bg-background font-sans antialiased flex flex-col`}>
+    <html lang="en" className="light" style={{ colorScheme: 'light' }}>
+      <body className={`${inter.variable} min-h-screen bg-white text-[#1C3B5E] font-sans antialiased flex flex-col`}>
         <Navbar />
         <main className="flex-1">
           {children}

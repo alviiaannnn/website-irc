@@ -3,29 +3,135 @@
 @plugin "tailwindcss-animate";
 
 @theme inline {
-  --color-primary: #F04F2F; /* IPB Robotic Club Red-Orange */
-  --color-secondary: #1C3B5E; /* IPB Robotic Club Dark Blue */
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: #F04F2F;
+  --color-secondary: #1C3B5E;
+  --color-accent: #E8ECF1;
+  --color-background: #FFFFFF;
+  --color-foreground: #1C3B5E;
+  --font-sans: var(--font-inter);
 }
 
-:root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #020617;
-    --foreground: #f8fafc;
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  background: #FFFFFF;
+  color: #1C3B5E;
+  font-family: var(--font-sans), 'Inter', Arial, Helvetica, sans-serif;
   @apply antialiased;
+}
+
+/* Force light mode - no dark mode */
+html {
+  color-scheme: light;
+}
+
+/* Decorative red-orange blob used on PDF pages */
+.blob-decoration {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  background: #F04F2F;
+  border-radius: 50%;
+  filter: blur(0px);
+  z-index: 0;
+  opacity: 0.9;
+}
+
+.blob-decoration-sm {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  background: #1C3B5E;
+  border-radius: 50%;
+  z-index: 0;
+  opacity: 0.8;
+}
+
+/* Page section styling matching PDF */
+.page-section {
+  position: relative;
+  background: #FFFFFF;
+  padding: 3rem 1.5rem;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .page-section {
+    padding: 5rem 2rem;
+  }
+}
+
+/* PDF-style page title */
+.page-title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #1C3B5E;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .page-title {
+    font-size: 3.5rem;
+  }
+}
+
+/* Content card matching PDF white boxes */
+.content-card {
+  background: #F3F5F8;
+  border-radius: 1rem;
+  padding: 2rem;
+  border: none;
+}
+
+/* PDF Footer bar */
+.pdf-footer-bar {
+  background: #1C3B5E;
+  color: white;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+}
+
+.pdf-footer-bar .empowered-badge {
+  background: #F04F2F;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  font-style: italic;
+  font-weight: 600;
+  font-size: 0.7rem;
+}
+
+/* Tag / badge chip like in PDF */
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  background: #F04F2F;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+}
+
+.tag-chip-outline {
+  display: inline-flex;
+  align-items: center;
+  border: 1.5px solid #1C3B5E;
+  color: #1C3B5E;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 1rem;
+  border-radius: 9999px;
 }
