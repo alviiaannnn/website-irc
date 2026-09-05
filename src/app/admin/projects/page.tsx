@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { toast } from "react-hot-toast"
-import { Trash2, Edit, Plus, Image as ImageIcon, X } from "lucide-react"
+import { Trash2, Edit, Plus, Image as ImageIcon, X, Briefcase } from "lucide-react"
 
 export default function ProjectsAdminPage() {
   const supabase = createClient()

@@ -1,7 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowRight, ChevronRight } from "lucide-react"
 
@@ -55,12 +54,12 @@ export default async function Home() {
             {settings?.hero_subtitle || "Empowered by Innovation"}
           </p>
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Button asChild size="lg" className="h-12 px-8 text-base font-semibold">
-              <Link href="/about">Discover Our Story</Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="h-12 px-8 text-base font-semibold bg-transparent border-white text-white hover:bg-white hover:text-slate-900">
-              <Link href="/projects">View Projects</Link>
-            </Button>
+            <Link href="/about" className="inline-flex items-center justify-center rounded-md bg-primary text-white h-12 px-8 text-base font-semibold hover:bg-primary/90 transition-colors">
+              Discover Our Story
+            </Link>
+            <Link href="/projects" className="inline-flex items-center justify-center rounded-md border border-white bg-transparent text-white h-12 px-8 text-base font-semibold hover:bg-white hover:text-slate-900 transition-colors">
+              View Projects
+            </Link>
           </div>
         </div>
       </section>
@@ -74,12 +73,10 @@ export default async function Home() {
               <p className="text-lg text-slate-600 mb-6 leading-relaxed">
                 {settings?.about_description || "IPB Robotic Club (IRC) is a functional organization under the mentoring of Directorate of Student Affairs (Ditmawa) IPB University. IRC is a place for student competencies development in robotics, technology, and innovation fields, as well as strategic steps in supporting robotics research at IPB University."}
               </p>
-              <Button asChild variant="ghost" className="group p-0 hover:bg-transparent text-primary hover:text-primary/80">
-                <Link href="/about" className="inline-flex items-center text-lg font-medium">
-                  Learn more about our departments
-                  <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                </Link>
-              </Button>
+              <Link href="/about" className="group inline-flex items-center text-lg font-medium text-primary hover:text-primary/80 transition-colors">
+                Learn more about our departments
+                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+              </Link>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-4">
@@ -121,9 +118,9 @@ export default async function Home() {
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Latest Projects</h2>
               <p className="text-slate-500 mt-2 text-lg">Showcasing IRC's innovative developments in robotics.</p>
             </div>
-            <Button asChild variant="outline">
-              <Link href="/projects">View All Projects</Link>
-            </Button>
+            <Link href="/projects" className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50 transition-colors">
+              View All Projects
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
