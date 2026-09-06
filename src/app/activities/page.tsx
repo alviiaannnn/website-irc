@@ -1,5 +1,6 @@
 import Image from "next/image"
 import { createClient } from "@/lib/supabase/server"
+import { Trophy, Plane, Rocket, Bot, Calendar } from "lucide-react"
 
 export const metadata = {
   title: "Activities | IPB Robotic Club",
@@ -15,105 +16,103 @@ export default async function ActivitiesPage() {
     .order("year", { ascending: false })
     .order("order_index")
 
-  const safmc = achievements?.filter(a => a.category?.toLowerCase().includes("safmc")) || []
-  const krti = achievements?.filter(a => a.category?.toLowerCase().includes("krti")) || []
-  const ground = achievements?.filter(a => a.category?.toLowerCase().includes("ground") || a.category?.toLowerCase().includes("transporter")) || []
-  const others = achievements?.filter(a =>
-    !a.category?.toLowerCase().includes("safmc") &&
-    !a.category?.toLowerCase().includes("krti") &&
-    !a.category?.toLowerCase().includes("ground") &&
-    !a.category?.toLowerCase().includes("transporter")
-  ) || []
+  const categories = [
+    { key: "krti", label: "KRTI", full: "Kontes Robot Terbang Indonesia", desc: "Annual national UAV competition organized by the Ministry of Education, Culture, Research, and Technology.", icon: Plane, color: "F04F2F" },
+    { key: "safmc", label: "SAFMC", full: "Singapore Amazing Flying Machine Competition", desc: "International competition organized by DSO National Laboratories and Science Centre Singapore.", icon: Rocket, color: "1C3B5E" },
+    { key: "ground", label: "Ground Robotics", full: "FIRA & Other Ground Competitions", desc: "Developing land-based robots for navigation, object transportation, and robotic coordination.", icon: Bot, color: "F04F2F" },
+  ]
 
-  return (
-    <div className="bg-white">
-
-      <section className="py-20 bg-white relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-32 h-32 bg-[#F04F2F] rounded-full -translate-x-1/2 -translate-y-1/2 opacity-90" />
-        <div className="absolute top-10 right-0 w-20 h-20 bg-[#1C3B5E] rounded-full translate-x-1/2 opacity-60" />
-
-        <div className="container mx-auto px-4 md:px-6 relative z-10">
-          <h1 className="page-title mb-4">Past Competition & Achievements</h1>
-          <p className="text-center text-[#1C3B5E]/70 text-lg max-w-3xl mx-auto mb-16">
-            Some of the competitions we have participated in so far. We continuously push boundaries in aerial and ground robotics.
-          </p>
-
-          {/* SAFMC */}
-          <div className="mb-20">
-            <h2 className="text-2xl font-black text-[#1C3B5E] uppercase mb-2">SAFMC</h2>
-            <p className="text-[#1C3B5E]/60 mb-8 max-w-3xl">
-              Organized by DSO National Laboratories and Science Centre Singapore. A platform for exploring the science behind flight and building flying machines.
-            </p>
-            <AchievementGrid achievements={safmc} />
-          </div>
-
-          {/* KRTI */}
-          <div className="mb-20">
-            <h2 className="text-2xl font-black text-[#1C3B5E] uppercase mb-2">KRTI</h2>
-            <p className="text-[#1C3B5E]/60 mb-8 max-w-3xl">
-              Kontes Robot Terbang Indonesia organized by the Ministry of Education, Culture, Research, and Technology of the Republic of Indonesia.
-            </p>
-            <AchievementGrid achievements={krti} />
-          </div>
-
-          {/* Ground Robotics */}
-          <div className="mb-20">
-            <h2 className="text-2xl font-black text-[#1C3B5E] uppercase mb-2">Ground Robotics</h2>
-            <p className="text-[#1C3B5E]/60 mb-8 max-w-3xl">
-              Developing land-based robots designed to complete specific tasks such as navigation, object transportation, and robotic system coordination.
-            </p>
-            <AchievementGrid achievements={ground} />
-          </div>
-
-          {/* Others */}
-          {others.length > 0 && (
-            <div className="mb-20">
-              <h2 className="text-2xl font-black text-[#1C3B5E] uppercase mb-8">Other Competitions</h2>
-              <AchievementGrid achievements={others} />
-            </div>
-          )}
-        </div>
-      </section>
-
-    </div>
-  )
-}
-
-function AchievementGrid({ achievements }: { achievements: any[] }) {
-  if (achievements.length === 0) {
-    return (
-      <div className="p-8 text-center bg-[#F3F5F8] rounded-xl">
-        <p className="text-[#1C3B5E]/50">No achievements added yet.</p>
-      </div>
+  function getAchievementsByCategory(key: string) {
+    if (!achievements || achievements.length === 0) return []
+    return achievements.filter(a =>
+      a.category?.toLowerCase().includes(key === "ground" ? "ground" : key) ||
+      (key === "ground" && a.category?.toLowerCase().includes("transporter"))
     )
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {achievements.map((achievement) => (
-        <div key={achievement.id} className="bg-[#F3F5F8] rounded-xl overflow-hidden">
-          {achievement.image_url && (
-            <div className="aspect-video relative bg-gray-200 overflow-hidden">
-              <Image
-                src={achievement.image_url}
-                alt={achievement.title}
-                fill
-                className="object-cover hover:scale-105 transition-transform duration-500"
-              />
-            </div>
-          )}
-          <div className="p-5">
-            <div className="flex justify-between items-start mb-2">
-              <span className="tag-chip">{achievement.year}</span>
-              <span className="text-xs font-semibold text-[#1C3B5E]/50 uppercase tracking-wider">{achievement.category}</span>
-            </div>
-            <h3 className="text-lg font-bold text-[#1C3B5E] mt-2">{achievement.title}</h3>
-            {achievement.description && (
-              <p className="text-sm text-[#1C3B5E]/70 mt-2">{achievement.description}</p>
-            )}
+    <div className="bg-white">
+
+      {/* ═══════ HEADER ═══════ */}
+      <section className="py-24 bg-white grid-bg relative overflow-hidden">
+        <div className="absolute top-20 -left-20 w-80 h-80 bg-[#F04F2F]/5 rounded-full blur-3xl" />
+
+        <div className="container mx-auto px-4 md:px-6 relative z-10">
+          <div className="text-center mb-20">
+            <span className="section-badge mb-4">
+              <Trophy className="w-3.5 h-3.5" /> Achievements
+            </span>
+            <h1 className="section-title mb-4">Past Competition & <span className="gradient-text-red">Achievements</span></h1>
+            <p className="section-subtitle mx-auto">
+              Some of the competitions we have participated in so far. We continuously push boundaries in aerial and ground robotics.
+            </p>
           </div>
+
+          {/* ═══════ CATEGORY SECTIONS ═══════ */}
+          <div className="space-y-24 max-w-6xl mx-auto">
+            {categories.map((cat) => {
+              const items = getAchievementsByCategory(cat.key)
+              const Icon = cat.icon
+
+              return (
+                <div key={cat.key}>
+                  {/* Category Header */}
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className={`w-14 h-14 rounded-2xl bg-[#${cat.color}]/10 flex items-center justify-center`}>
+                      <Icon className={`w-7 h-7 text-[#${cat.color}]`} />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-black text-[#1C3B5E] uppercase">{cat.label}</h2>
+                      <p className="text-xs text-[#64748B]">{cat.full}</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-[#64748B] mb-8 max-w-3xl">{cat.desc}</p>
+
+                  {/* Achievement Cards */}
+                  {items.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {items.map((a) => (
+                        <div key={a.id} className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover-card">
+                          {a.image_url ? (
+                            <div className="aspect-video relative overflow-hidden bg-gray-100">
+                              <Image src={a.image_url} alt={a.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                            </div>
+                          ) : (
+                            <div className="aspect-video img-placeholder">
+                              <div className="flex flex-col items-center gap-2">
+                                <Trophy className="w-8 h-8 text-[#CBD5E1]" />
+                                <span className="text-xs">Achievement Image</span>
+                              </div>
+                            </div>
+                          )}
+                          <div className="p-5">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="chip chip-primary text-[10px]">
+                                <Calendar className="w-3 h-3 mr-1" /> {a.year}
+                              </span>
+                            </div>
+                            <h3 className="text-base font-bold text-[#1C3B5E] group-hover:text-[#F04F2F] transition-colors">{a.title}</h3>
+                            {a.description && (
+                              <p className="text-xs text-[#64748B] mt-2 line-clamp-3">{a.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-[#F8FAFC] rounded-2xl p-10 text-center border border-gray-100">
+                      <Icon className="w-10 h-10 text-[#CBD5E1] mx-auto mb-3" />
+                      <p className="text-sm text-[#64748B]">No achievements added yet for this category.</p>
+                      <p className="text-xs text-[#94A3B8] mt-1">Add them via the Admin Panel.</p>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
         </div>
-      ))}
+      </section>
     </div>
   )
 }
