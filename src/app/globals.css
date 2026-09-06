@@ -26,6 +26,22 @@ body {
   @apply antialiased;
 }
 
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
 /* ── Gradient Text ── */
 .gradient-text {
   background: linear-gradient(135deg, #1C3B5E 0%, #F04F2F 100%);
