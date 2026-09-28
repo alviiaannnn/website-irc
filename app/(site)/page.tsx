@@ -73,13 +73,13 @@ export default async function Home() {
       </section>
 
       <Block section={s.research} eyebrow="Research" link={{ href: '/research#teams', label: 'All research teams' }}>
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="cards grid gap-6 md:grid-cols-3">
           {teams.map((t) => <ResearchTeamCard key={t.id} team={t} />)}
         </div>
       </Block>
 
       <Block section={s.projects} eyebrow="Projects" link={{ href: '/research#projects', label: 'All projects' }} className="pt-0 md:pt-0">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="cards grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {featured.map((p) => <ProjectCard key={p.id} project={p} />)}
         </div>
       </Block>

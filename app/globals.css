@@ -51,3 +51,19 @@ body {
   .fade-up { animation: fade-up 300ms ease-out both; }
   @keyframes fade-up { from { opacity: 0; transform: translateY(12px); } }
 }
+
+/* Phones: rows of cards slide sideways instead of stacking; the next card peeks in. */
+@media (max-width: 639px) {
+  .cards {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin-inline: -1rem;
+    padding: 0 1rem 0.5rem;
+    scroll-padding-inline: 1rem;
+    scrollbar-width: none;
+  }
+  .cards > * { flex: 0 0 85%; scroll-snap-align: start; }
+  .cards > :only-child { flex-basis: 100%; }
+}

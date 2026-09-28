@@ -30,7 +30,7 @@ export function ProjectGrid({ projects, teams }: { projects: Project[]; teams: P
     <>
       <Segmented label="Filter projects by research team" options={[{ id: 'all', name: 'All' }, ...teams]} value={team} onChange={setTeam} />
       <p className="sr-only" aria-live="polite">{shown.length} projects shown</p>
-      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="cards mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {shown.map((p) => <ProjectCard key={p.id} project={p} />)}
       </div>
     </>

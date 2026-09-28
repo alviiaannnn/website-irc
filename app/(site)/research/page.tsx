@@ -33,7 +33,7 @@ export default async function Research() {
           {groups.map((g) => (
             <div key={g} className="mx-auto max-w-[1200px] px-4 md:px-6">
               <SectionHeading section={s[g.toLowerCase()]} eyebrow="Research team" />
-              <div className="mt-12 grid gap-6 lg:grid-cols-2">
+              <div className="cards mt-12 grid gap-6 lg:grid-cols-2">
                 {teams.filter((t) => t.group_name === g).map((t) => (
                   <article key={t.id} id={t.slug} className="overflow-hidden rounded-2xl border border-navy-200/70 bg-white">
                     <div className="relative aspect-[16/9] bg-surface">
@@ -71,7 +71,7 @@ export default async function Research() {
       </Block>
 
       <Block id="competitions" section={s.competitions} eyebrow="Competitions" className="pt-0 md:pt-0">
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="cards grid gap-6 md:grid-cols-2">
           {competitions.map((c) => (
             <CompetitionCard
               key={c.id}
