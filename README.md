@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# IPB Robotic Club website
 
-## Getting Started
+Portfolio site for IPB Robotic Club (IRC). Next.js 16 (App Router) + Supabase + Web3Forms + Tailwind 4. Spec: [docs/PRD.md](docs/PRD.md), content source: [docs/handbook_IRC.md](docs/handbook_IRC.md).
 
-First, run the development server:
+- Public pages: `/`, `/about`, `/research` (+ `/research/projects/[slug]`, `/research/competitions/[slug]`), `/gallery-news`, `/teams`, `/sponsors`, `/contact`. All static; every admin save calls `revalidatePath('/', 'layout')`.
+- Admin: `/admin` — invite-only Supabase Auth. Roles in `profiles`: `editor` (all content) and `admin` (+ accounts).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Setup
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1. Create a Supabase project and fill `.env.local` from `.env.example`.
+2. Run `supabase/migrations/20260928000000_init.sql` in the Supabase SQL editor (tables, RLS, `media` bucket).
+3. Supabase → Authentication:
+   - Sign In / Providers: turn **off** "Allow new users to sign up".
+   - URL Configuration: Site URL = your site URL; add `http://localhost:3000/**` and `https://<your-domain>/**` to Redirect URLs (invite links land on `/admin/accept-invite`).
+4. `npm install`
+5. `npm run seed` — uploads the photos from `public/images` and fills every table from the handbook. With `SEED_ADMIN_EMAIL` set it also invites the first admin. Runs once on an empty database.
+6. `npm run dev`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploy (Vercel)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Add the env vars from `.env.example` in the Vercel dashboard (`SUPABASE_SERVICE_ROLE_KEY` is server-only; it is needed for inviting/removing admin accounts). Set `NEXT_PUBLIC_SITE_URL` to the production URL and add it to Supabase Redirect URLs.
 
-## Learn More
+## Where things are
 
-To learn more about Next.js, take a look at the following resources:
+| Path | What |
+| --- | --- |
+| `app/(site)/` | Public pages with Navbar/Footer layout |
+| `app/admin/` | Login, invite acceptance, generic CRUD, media library, accounts; `actions.ts` holds all Server Actions |
+| `lib/admin.ts` | Admin module config: one entry per table decides the fields and list columns |
+| `lib/data.ts` | Public read queries (anon key, no cookies → static pages) |
+| `components/ui.tsx` | Shared server components (cards, timeline, markdown, placeholders) |
+| `proxy.ts` | Session refresh + redirect signed-out users away from `/admin` |
+| `supabase/migrations/` | Schema, RLS, storage policies |
+| `scripts/seed.mts` | Seed from the handbook |
+| `docs/asset-manifest.md` | Every image, where it is used, and what still needs confirmation |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Page text supports a tiny markdown: blank line = paragraph, `- ` = list (indent 2 spaces to nest), `**bold**`, `[text](url)`.
