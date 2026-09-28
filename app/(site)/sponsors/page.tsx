@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { SupportForm } from '@/components/support-form'
 import { Block, ButtonLink, Container, Markdown, NavyPanel, PageHeader, SectionHeading, StepPills, SponsorLogoGrid, listItems } from '@/components/ui'
 import { getSections, getSponsors, getSupporters } from '@/lib/data'
 
@@ -60,12 +59,13 @@ export default async function Sponsors() {
             ))}
           </div>
 
-          <div className="mt-16 grid gap-12 lg:grid-cols-[1fr_1.6fr]">
-            <div>
+          <div className="mt-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
               <h3 className="text-3xl font-semibold tracking-[-0.04em] text-navy-900">{s.pledge?.title}</h3>
               <Markdown text={s.pledge?.body} className="mt-3 leading-relaxed text-navy-600" />
             </div>
-            <SupportForm />
+            {/* Google Form link, editable in Admin → Page text → Sponsors · pledge. */}
+            {s.pledge?.cta_href && <div className="shrink-0"><ButtonLink href={s.pledge.cta_href}>{s.pledge.cta_label ?? 'Support IRC'}</ButtonLink></div>}
           </div>
 
           {supporters.length > 0 && (
