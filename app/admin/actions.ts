@@ -88,8 +88,10 @@ export async function deleteRow(key: string, id: string) {
   const mod = modules[key]
   const { db } = await requireEditor()
   if (!mod?.create) back(`/admin/${key}`, { error: 'Items here cannot be deleted.' })
-  const { error } = await db.from(mod.table).delete().eq('id', id)
+  // RLS turns a forbidden delete into "0 rows" without an error, so check what was removed.
+  const { data, error } = await db.from(mod.table).delete().eq('id', id).select('id')
   if (error) back(`/admin/${key}`, { error: dbError(error) })
+  if (!data?.length) back(`/admin/${key}`, { error: 'Nothing was deleted: the item is gone or your account may not edit it.' })
   revalidateAll()
   back(`/admin/${key}`, { ok: 'Deleted.' })
 }
@@ -125,7 +127,8 @@ export async function deleteMedia(id: string) {
   const { db } = await requireEditor()
   const { data: m } = await db.from('media').select('path').eq('id', id).single()
   // Foreign keys block this while the photo is used anywhere.
-  const { error } = await db.from('media').delete().eq('id', id)
+  const { data: gone, error } = await db.from('media').delete().eq('id', id).select('id')
+  if (!error && !gone?.length) back('/admin/media', { error: 'Nothing was deleted: the photo is gone or your account may not edit it.' })
   if (error) back(`/admin/media`, { error: error.code === '23503' ? 'This photo is in use. Remove it from those items first.' : dbError(error) })
   if (m) await db.storage.from('media').remove([m.path])
   revalidateAll()

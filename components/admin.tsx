@@ -414,10 +414,20 @@ export function BulkUpload({ competitions }: { competitions: { id: string; name:
   )
 }
 
+/** Two-step delete button. Confirms inside the page, so it works where window.confirm() is blocked. */
 export function ConfirmButton({ children, message }: { children: ReactNode; message: string }) {
+  const [asking, setAsking] = useState(false)
+  if (!asking)
+    return (
+      <button type="button" onClick={() => setAsking(true)} className="text-sm font-medium text-primary-ink hover:underline">
+        {children}
+      </button>
+    )
   return (
-    <button type="submit" onClick={(e) => !confirm(message) && e.preventDefault()} className="text-sm font-medium text-primary-ink hover:underline">
-      {children}
-    </button>
+    <span role="alert" className="inline-flex flex-wrap items-center gap-3 text-sm">
+      <span className="text-navy-900">{message}</span>
+      <button type="submit" className="rounded-lg bg-primary-ink px-3 py-1.5 font-semibold text-white hover:brightness-90">Yes, delete</button>
+      <button type="button" onClick={() => setAsking(false)} className="font-medium text-navy-600 hover:text-navy-900">Cancel</button>
+    </span>
   )
 }

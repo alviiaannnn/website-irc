@@ -108,7 +108,7 @@ export default async function EditRow({ params, searchParams }: PageProps<'/admi
         </AdminForm>
       </div>
       {mod.create && !isNew && (
-        <form action={deleteRow.bind(null, key, id)} className="flex items-center justify-between rounded-2xl border border-navy-200/70 bg-white px-6 py-4">
+        <form action={deleteRow.bind(null, key, id)} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-navy-200/70 bg-white px-6 py-4">
           <p className="text-sm text-navy-600">Remove this item from the website permanently.</p>
           <ConfirmButton message="Delete this item? This cannot be undone.">Delete</ConfirmButton>
         </form>
