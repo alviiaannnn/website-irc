@@ -156,3 +156,8 @@ export const getSponsors = () =>
   q<Sponsor[]>(db.from('sponsors').select(`*, logo:media!logo_media_id(${M})`).order('sort_order'))
 
 export const isPodium = (result: string | null) => !!result && /^(1st|2nd|3rd)\b/i.test(result)
+
+export type Supporter = { id: string; name: string; instagram: string | null }
+// Only these columns are granted to visitors; contact and amount stay private.
+export const getSupporters = () =>
+  q<Supporter[]>(db.from('supporters').select('id,name,instagram').order('sort_order').order('created_at'))

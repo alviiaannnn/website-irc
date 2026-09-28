@@ -161,6 +161,19 @@ export const modules: Record<string, Module> = {
       order,
     ],
   },
+  supporters: {
+    table: 'supporters', title: 'Supporters', hint: 'Individual pledges from the Sponsors page. Publish them once the payment arrives.',
+    label: 'name', meta: ['instagram', 'amount', 'contact'], order: ['is_published', '-created_at'], create: true, view: () => '/sponsors#support',
+    fields: [
+      { name: 'name', label: 'Name', type: 'text', required: true },
+      { name: 'instagram', label: 'Instagram username', type: 'text', help: 'Without @. Shown on the website and used for the Instagram thank-you tag.' },
+      { name: 'amount', label: 'Amount (IDR)', type: 'number', required: true },
+      { name: 'contact', label: 'Email or WhatsApp', type: 'text', required: true, help: 'Private. Never shown on the website.' },
+      { name: 'message', label: 'Message', type: 'textarea' },
+      { name: 'is_published', label: 'Payment received: show in "Special thanks to" (IDR 400.000+ tier)', type: 'bool' },
+      order,
+    ],
+  },
   settings: {
     table: 'site_settings', title: 'Settings', hint: 'Contact details, social links and the share image.',
     label: 'org_name', order: [], singleton: true, view: () => '/contact',
@@ -180,7 +193,7 @@ export const modules: Record<string, Module> = {
 
 export const nav: { title: string; items: string[] }[] = [
   { title: 'Pages', items: ['page-sections'] },
-  { title: 'Content', items: ['research-teams', 'projects', 'competitions', 'entries', 'gallery', 'news', 'people', 'sponsors'] },
+  { title: 'Content', items: ['research-teams', 'projects', 'competitions', 'entries', 'gallery', 'news', 'people', 'sponsors', 'supporters'] },
 ]
 
 // Columns that reference media, for "where is this photo used" and delete checks.

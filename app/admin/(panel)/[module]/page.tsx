@@ -45,10 +45,10 @@ export default async function ModuleList({ params, searchParams }: PageProps<'/a
   const { data, error: loadError } = await query
   const rows = (data ?? []) as unknown as Row[]
   const meta = (r: Row) =>
-    (mod.meta ?? []).map((c) => (refs.some((f) => f.name === c) ? text((r[`r_${c}`] as Row | null)?.[refs.find((f) => f.name === c)!.ref!.label]) : text(r[c]))).filter(Boolean).join(' · ')
+    (mod.meta ?? []).map((c) => (c === 'amount' ? `IDR ${Number(r[c]).toLocaleString('id-ID')}` : refs.some((f) => f.name === c) ? text((r[`r_${c}`] as Row | null)?.[refs.find((f) => f.name === c)!.ref!.label]) : text(r[c]))).filter(Boolean).join(' · ')
   const badges = (r: Row) => (
     <>
-      {r.is_published === false && <Badge>Hidden</Badge>}
+      {r.is_published === false && <Badge>{key === 'supporters' ? 'Pending payment' : 'Hidden'}</Badge>}
       {r.is_featured === true && <Badge>Featured</Badge>}
     </>
   )

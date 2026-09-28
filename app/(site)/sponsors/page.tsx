@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
-import { Block, ButtonLink, Container, NavyPanel, PageHeader, SectionHeading, SponsorLogoGrid, StepPills } from '@/components/ui'
-import { getSections, getSponsors } from '@/lib/data'
+import { SupportForm } from '@/components/support-form'
+import { Block, ButtonLink, Container, Markdown, NavyPanel, PageHeader, SectionHeading, StepPills, SponsorLogoGrid, listItems } from '@/components/ui'
+import { getSections, getSponsors, getSupporters } from '@/lib/data'
 
 export const metadata: Metadata = {
   title: 'Sponsors',
@@ -8,14 +9,24 @@ export const metadata: Metadata = {
 }
 
 export default async function Sponsors() {
-  const [s, sponsors] = await Promise.all([getSections('sponsors'), getSponsors()])
+  const [s, sponsors, supporters] = await Promise.all([getSections('sponsors'), getSponsors(), getSupporters()])
+  const tiers = ['tier-1', 'tier-2', 'tier-3'].flatMap((k) => s[k] ?? [])
   return (
     <>
       <PageHeader
         eyebrow="Partners"
         title={s.intro?.title}
         body={s.intro?.body}
-        aside={<StepPills items={[{ label: `${sponsors.length} supporters`, href: '#logos' }, { label: 'Why support IRC', href: '#why' }, { label: 'Become a sponsor', href: '/contact?topic=sponsorship' }]} />}
+        aside={
+          <StepPills
+            items={[
+              { label: `${sponsors.length} partners`, href: '#logos' },
+              { label: 'Why support IRC', href: '#why' },
+              { label: 'Become a sponsor', href: '/contact?topic=sponsorship' },
+              { label: 'Support as an individual', href: '#support' },
+            ]}
+          />
+        }
       />
       <Block id="logos">
         <SponsorLogoGrid sponsors={sponsors} />
@@ -31,6 +42,50 @@ export default async function Sponsors() {
         <Container className="flex flex-col gap-8 border-t border-navy-200/70 pt-16 md:flex-row md:items-end md:justify-between">
           <SectionHeading section={s.cta} />
           {s.cta?.cta_href && <div className="shrink-0"><ButtonLink href={s.cta.cta_href}>{s.cta.cta_label}</ButtonLink></div>}
+        </Container>
+      </section>
+
+      <section id="support" className="pb-20 md:pb-28">
+        <Container className="border-t border-navy-200/70 pt-16">
+          <SectionHeading section={s.support} eyebrow="Individual support" />
+          <div className="cards mt-12 grid gap-6 md:grid-cols-3">
+            {tiers.map((t) => (
+              <article key={t.key} className="flex flex-col rounded-2xl border border-navy-200/70 bg-white p-6">
+                <p className="text-xs font-semibold tracking-[0.18em] text-primary-ink uppercase">Starting from</p>
+                <p className="mt-2 font-mono text-3xl tracking-tight text-navy-900">{t.title}</p>
+                <ul className="mt-6 divide-y divide-navy-200/70 border-t border-navy-200/70 text-sm text-navy-600">
+                  {listItems(t.body).map((b) => <li key={b.text} className="py-3">{b.text}</li>)}
+                </ul>
+              </article>
+            ))}
+          </div>
+
+          <div className="mt-16 grid gap-12 lg:grid-cols-[1fr_1.6fr]">
+            <div>
+              <h3 className="text-3xl font-semibold tracking-[-0.04em] text-navy-900">{s.pledge?.title}</h3>
+              <Markdown text={s.pledge?.body} className="mt-3 leading-relaxed text-navy-600" />
+            </div>
+            <SupportForm />
+          </div>
+
+          {supporters.length > 0 && (
+            <div className="mt-20 text-center">
+              <h3 className="text-3xl font-semibold tracking-[-0.04em] text-navy-900">Special thanks to</h3>
+              <ul className="mt-8 flex flex-wrap justify-center gap-3">
+                {supporters.map((p) => (
+                  <li key={p.id}>
+                    {p.instagram ? (
+                      <a href={`https://www.instagram.com/${p.instagram}/`} target="_blank" rel="noopener noreferrer" className="inline-block rounded-xl bg-secondary px-5 py-3 font-medium text-white hover:bg-navy-900">
+                        @{p.instagram}
+                      </a>
+                    ) : (
+                      <span className="inline-block rounded-xl bg-secondary px-5 py-3 font-medium text-white">{p.name}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </Container>
       </section>
     </>
