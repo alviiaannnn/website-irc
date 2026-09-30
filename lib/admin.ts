@@ -191,6 +191,27 @@ export const modules: Record<string, Module> = {
   },
 }
 
+// Page sections that actually show a photo or a button on the site. Every other section is heading + text only,
+// so the edit form hides those fields. Keep in sync when a page starts rendering s.<key>.media or .cta_href.
+const sectionExtras: Record<string, ('media' | 'cta')[]> = {
+  'home/hero': ['media', 'cta'],
+  'home/cta': ['cta'],
+  'about/intro': ['media'],
+  'about/mechanical': ['media'],
+  'about/electrical': ['media'],
+  'about/software': ['media'],
+  'sponsors/cta': ['cta'],
+  'support/pledge': ['cta'],
+}
+export const sectionUses = (row: Row, what: 'media' | 'cta') => !!sectionExtras[`${row.page}/${row.key}`]?.includes(what)
+
+/** Fields to show when editing this row. */
+export function fieldsFor(key: string, row: Row): Field[] {
+  const fields = modules[key].fields
+  if (key !== 'page-sections') return fields
+  return fields.filter((f) => (f.name === 'media_id' ? sectionUses(row, 'media') : f.name.startsWith('cta_') ? sectionUses(row, 'cta') : true))
+}
+
 export const pageNames: Record<string, string> = {
   home: 'Home', about: 'About', research: 'Research', 'gallery-news': 'Gallery & News',
   teams: 'Teams', sponsors: 'Sponsors', support: 'Individual Support', contact: 'Contact',

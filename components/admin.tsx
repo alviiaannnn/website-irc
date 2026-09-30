@@ -10,7 +10,6 @@ import type { Media } from '@/lib/data'
 import { mediaUrl } from '@/lib/media'
 import { browserDb } from '@/lib/supabase-browser'
 
-
 export function NavLink({ href, children }: { href: string; children: ReactNode }) {
   const path = usePathname()
   const active = href === '/admin' ? path === href : path.startsWith(href)
@@ -105,6 +104,8 @@ function Modal({ open, onClose, title, children }: { open: boolean; onClose: () 
       ref={ref}
       onClose={onClose}
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      // The dialog sits inside the edit form: Enter in its search/alt inputs must not save that form.
+      onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLElement).tagName === 'INPUT' && e.preventDefault()}
       aria-label={title}
       className="m-auto w-[min(56rem,calc(100vw-2rem))] rounded-2xl p-0 backdrop:bg-navy-900/60"
     >

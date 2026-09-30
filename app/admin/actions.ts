@@ -56,6 +56,8 @@ export async function saveRow(key: string, id: string, _prev: ActionState, fd: F
   const row: Record<string, unknown> = {}
   let gallery: string[] | null = null
   for (const f of mod.fields) {
+    // Fields hidden from this form keep their stored value. (Unchecked boxes and an emptied gallery also send nothing, so those still count.)
+    if (!fd.has(f.name) && f.type !== 'bool' && f.type !== 'gallery') continue
     const { value, error } = parse(f, fd)
     if (error) return { error }
     if (f.type === 'gallery') gallery = value as string[]

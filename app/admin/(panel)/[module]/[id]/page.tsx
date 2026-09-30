@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { deleteRow, saveRow } from '../../../actions'
 import { AdminForm, ConfirmButton, GalleryField, MediaField } from '@/components/admin'
-import { inputCls, modules, pageNames, type Field } from '@/lib/admin'
+import { fieldsFor, inputCls, modules, pageNames, type Field } from '@/lib/admin'
 import { requireEditor } from '@/lib/auth'
 import type { Media } from '@/lib/data'
 
@@ -26,7 +26,8 @@ export default async function EditRow({ params, searchParams }: PageProps<'/admi
   const row: Row | null = isNew ? {} : (await db.from(mod.table).select('*').eq('id', id).maybeSingle()).data
   if (!row) notFound()
 
-  const needsMedia = mod.fields.some((f) => f.type === 'media' || f.type === 'gallery')
+  const fields = fieldsFor(key, row)
+  const needsMedia = fields.some((f) => f.type === 'media' || f.type === 'gallery')
   const library: Media[] = needsMedia ? (await db.from('media').select(M).order('created_at', { ascending: false })).data ?? [] : []
   const refs: Record<string, { id: string; label: string }[]> = {}
   for (const f of mod.fields.filter((f) => f.ref)) {
@@ -71,7 +72,7 @@ export default async function EditRow({ params, searchParams }: PageProps<'/admi
     }
   }
 
-  const toggles = mod.fields.filter((f) => f.type === 'bool')
+  const toggles = fields.filter((f) => f.type === 'bool')
   const title = key === 'page-sections' ? `${pageNames[String(row.page)] ?? row.page} · ${row.key}` : isNew ? `New ${mod.title.toLowerCase()} item` : String(row[mod.label] ?? 'Untitled')
   return (
     <div className="max-w-3xl space-y-6">
@@ -82,7 +83,7 @@ export default async function EditRow({ params, searchParams }: PageProps<'/admi
       </div>
       <div className="rounded-2xl border border-navy-200/70 bg-white px-6 pt-6">
         <AdminForm action={saveRow.bind(null, key, id)} initialOk={saved ? 'Saved.' : undefined}>
-          {mod.fields.filter((f) => f.type !== 'bool').map((f) =>
+          {fields.filter((f) => f.type !== 'bool').map((f) =>
             f.type === 'media' ? (
               <MediaField key={f.name} name={f.name} label={f.label} required={f.required} library={library} initial={library.find((m) => m.id === get(row, f.name)) ?? null} />
             ) : f.type === 'gallery' ? (

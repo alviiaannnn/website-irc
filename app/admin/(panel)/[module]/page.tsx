@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { BulkUpload } from '@/components/admin'
-import { btnCls, modules, pageNames } from '@/lib/admin'
+import { btnCls, modules, pageNames, sectionUses } from '@/lib/admin'
 import { requireEditor } from '@/lib/auth'
 import { mediaUrl } from '@/lib/media'
 
@@ -80,7 +80,7 @@ export default async function ModuleList({ params, searchParams }: PageProps<'/a
               {rows.filter((r) => r.page === page).map((r) => (
                 <li key={r.id}>
                   <Link href={`/admin/${key}/${r.id}`} className="flex items-center gap-4 px-4 py-3 hover:bg-surface">
-                    <Thumb m={r._m} />
+                    {sectionUses(r, 'media') ? <Thumb m={r._m} /> : <span className="block size-14 shrink-0" />}
                     <span className="min-w-0 flex-1">
                       <span className="block font-medium text-navy-900">{text(r.title) || <span className="text-navy-600">(no heading)</span>}</span>
                       <span className="block truncate text-sm text-navy-600">{text(r.body).replace(/\s+/g, ' ') || 'No text'}</span>
