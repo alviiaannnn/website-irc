@@ -7,9 +7,9 @@ export const metadata: Metadata = {
   description: 'Support IPB Robotic Club as an individual on our road to SAFMC 2027: contribution tiers, benefits, and our supporters.',
 }
 
-// Content lives in Page text → sponsors (support, tier-1..3, pledge).
+// Content lives in Admin → Page text → Individual Support (support, tier-1..3, pledge).
 export default async function Support() {
-  const [s, supporters] = await Promise.all([getSections('sponsors'), getSupporters()])
+  const [s, supporters] = await Promise.all([getSections('support'), getSupporters()])
   const tiers = ['tier-1', 'tier-2', 'tier-3'].flatMap((k) => s[k] ?? [])
   return (
     <>
@@ -46,7 +46,7 @@ export default async function Support() {
               <h2 className="text-3xl font-semibold tracking-[-0.04em] text-navy-900">{s.pledge?.title}</h2>
               <Markdown text={s.pledge?.body} className="mt-3 leading-relaxed text-navy-600" />
             </div>
-            {/* Google Form link, editable in Admin → Page text → Sponsors · pledge. */}
+            {/* Google Form link, editable in Admin → Page text → Individual Support · pledge. */}
             {s.pledge?.cta_href && <div className="shrink-0"><ButtonLink href={s.pledge.cta_href}>{s.pledge.cta_label ?? 'Support IRC'}</ButtonLink></div>}
           </div>
 

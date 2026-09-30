@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { deleteRow, saveRow } from '../../../actions'
 import { AdminForm, ConfirmButton, GalleryField, MediaField } from '@/components/admin'
-import { inputCls, modules, type Field } from '@/lib/admin'
+import { inputCls, modules, pageNames, type Field } from '@/lib/admin'
 import { requireEditor } from '@/lib/auth'
 import type { Media } from '@/lib/data'
 
@@ -72,7 +72,7 @@ export default async function EditRow({ params, searchParams }: PageProps<'/admi
   }
 
   const toggles = mod.fields.filter((f) => f.type === 'bool')
-  const title = key === 'page-sections' ? `${String(row.page).replace('-', ' & ')} · ${row.key}` : isNew ? `New ${mod.title.toLowerCase()} item` : String(row[mod.label] ?? 'Untitled')
+  const title = key === 'page-sections' ? `${pageNames[String(row.page)] ?? row.page} · ${row.key}` : isNew ? `New ${mod.title.toLowerCase()} item` : String(row[mod.label] ?? 'Untitled')
   return (
     <div className="max-w-3xl space-y-6">
       <Link href={mod.singleton ? '/admin' : `/admin/${key}`} className="text-sm font-medium text-navy-600 hover:text-navy-900">← {mod.singleton ? 'Dashboard' : mod.title}</Link>

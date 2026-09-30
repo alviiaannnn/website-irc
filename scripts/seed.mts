@@ -127,14 +127,14 @@ const sections = [
   { page: 'sponsors', key: 'cta', title: 'Become a sponsor',
     body: 'To achieve this goal, we seek your invaluable support in making this vision a reality.',
     cta_label: 'Become a Sponsor', cta_href: '/contact?topic=sponsorship' },
-  { page: 'sponsors', key: 'support', title: 'Contribute your support',
+  { page: 'support', key: 'support', title: 'Contribute your support',
     body: "IRC's journey is powered by people who believe in it. Support us as an individual and be part of our road to SAFMC 2027." },
-  { page: 'sponsors', key: 'tier-1', title: 'IDR 100.000', body: '- Thank-you shoutout on our official Instagram Story' },
-  { page: 'sponsors', key: 'tier-2', title: 'IDR 400.000',
+  { page: 'support', key: 'tier-1', title: 'IDR 100.000', body: '- Thank-you shoutout on our official Instagram Story' },
+  { page: 'support', key: 'tier-2', title: 'IDR 400.000',
     body: '- Thank-you mention on our Instagram\n- Your name featured on our official website\n- Your name in our after-movie credits' },
-  { page: 'sponsors', key: 'tier-3', title: 'IDR 800.000',
+  { page: 'support', key: 'tier-3', title: 'IDR 800.000',
     body: '- Your name on our robot\n- Credit in our after-movie\n- Shoutout on our website\n- Featured in our Instagram Story' },
-  { page: 'sponsors', key: 'pledge', title: 'Support IRC', cta_label: 'Support IRC', cta_href: null, // Google Form link, set in admin
+  { page: 'support', key: 'pledge', title: 'Support IRC', cta_label: 'Support IRC', cta_href: null, // Google Form link, set in admin
     body: 'Fill in our support form: it has the bank details and everything else you need. Once your contribution arrives, we thank you on Instagram, and from IDR 400.000 your Instagram username appears below in "Special thanks to".' },
 
   { page: 'contact', key: 'intro', title: 'Contact us',

@@ -191,6 +191,11 @@ export const modules: Record<string, Module> = {
   },
 }
 
+export const pageNames: Record<string, string> = {
+  home: 'Home', about: 'About', research: 'Research', 'gallery-news': 'Gallery & News',
+  teams: 'Teams', sponsors: 'Sponsors', support: 'Individual Support', contact: 'Contact',
+}
+
 export const nav: { title: string; items: string[] }[] = [
   { title: 'Pages', items: ['page-sections'] },
   { title: 'Content', items: ['research-teams', 'projects', 'competitions', 'entries', 'gallery', 'news', 'people', 'sponsors', 'supporters'] },

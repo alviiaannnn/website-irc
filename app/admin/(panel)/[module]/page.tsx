@@ -3,11 +3,14 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { BulkUpload } from '@/components/admin'
-import { btnCls, modules } from '@/lib/admin'
+import { btnCls, modules, pageNames } from '@/lib/admin'
 import { requireEditor } from '@/lib/auth'
 import { mediaUrl } from '@/lib/media'
 
 type Row = Record<string, unknown> & { id: string; _m?: { path: string; alt: string } | null }
+
+// Page text groups follow the site's menu order.
+const order = (page: string) => { const i = Object.keys(pageNames).indexOf(page); return i < 0 ? 99 : i }
 
 const text = (v: unknown) => (Array.isArray(v) ? v.join(', ') : v == null || v === '' ? '' : String(v))
 
@@ -70,9 +73,9 @@ export default async function ModuleList({ params, searchParams }: PageProps<'/a
       {(error || loadError) && <p role="alert" className="rounded-xl border border-navy-200/70 bg-white px-4 py-3 text-sm font-medium text-primary-ink">{String(error ?? loadError?.message)}</p>}
 
       {key === 'page-sections' ? (
-        [...new Set(rows.map((r) => String(r.page)))].map((page) => (
+        [...new Set(rows.map((r) => String(r.page)))].sort((x, y) => order(x) - order(y)).map((page) => (
           <section key={page}>
-            <h2 className="mb-2 text-sm font-semibold tracking-[0.14em] text-navy-600 uppercase">{page.replace('-', ' & ')} page</h2>
+            <h2 className="mb-2 text-sm font-semibold tracking-[0.14em] text-navy-600 uppercase">{pageNames[page] ?? page} page</h2>
             <ul className="divide-y divide-navy-200/70 rounded-2xl border border-navy-200/70 bg-white">
               {rows.filter((r) => r.page === page).map((r) => (
                 <li key={r.id}>
