@@ -1,12 +1,24 @@
 import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
 import { ButtonLink, Container, Markdown, PageHeader, StepPills } from '@/components/ui'
-import { getSections, getSupporters } from '@/lib/data'
+import { getSections, getSupporters, type Tier } from '@/lib/data'
 import { listItems } from '@/lib/text'
 
 export const metadata: Metadata = {
   title: 'Individual Support',
   description: 'Support IPB Robotic Club as an individual on our road to SAFMC 2027: contribution tiers, benefits, and our supporters.',
 }
+
+// Name badges in "Special thanks to": the tier (from the pledged amount) sets colour and size.
+const badge: Record<Tier, { label: string; cls: string }> = {
+  green: { label: 'Green · M', cls: 'bg-tier-green px-4 py-2 text-base text-white' },
+  gold: { label: 'Gold · L', cls: 'bg-linear-to-br from-tier-gold-light to-tier-gold px-5 py-2.5 text-lg text-navy-900' },
+  platinum: { label: 'Platinum · XL', cls: 'bg-linear-to-br from-white to-tier-platinum px-7 py-4 text-2xl text-navy-900 ring-1 ring-navy-200' },
+}
+const cardTier: Record<string, Tier> = { 'tier-1': 'green', 'tier-2': 'gold', 'tier-3': 'platinum' }
+const Badge = ({ tier, children }: { tier: Tier; children: ReactNode }) => (
+  <span className={`inline-block rounded-xl font-semibold tracking-tight shadow-sm ${badge[tier].cls}`}>{children}</span>
+)
 
 // Content lives in Admin → Page text → Individual Support (support, tier-1..3, pledge).
 export default async function Support() {
@@ -38,6 +50,12 @@ export default async function Support() {
                 <ul className="mt-6 divide-y divide-navy-200/70 border-t border-navy-200/70 text-sm text-navy-600">
                   {listItems(t.body).map((b) => <li key={b.text} className="py-3">{b.text}</li>)}
                 </ul>
+                {cardTier[t.key] && (
+                  <div className="mt-auto pt-6">
+                    <p className="font-mono text-xs text-navy-600">Your name on our website · {badge[cardTier[t.key]].label}</p>
+                    <div className="mt-3"><Badge tier={cardTier[t.key]}>@yourname</Badge></div>
+                  </div>
+                )}
               </article>
             ))}
           </div>
@@ -54,19 +72,25 @@ export default async function Support() {
           {supporters.length > 0 && (
             <div id="thanks" className="mt-20 text-center">
               <h2 className="text-3xl font-semibold tracking-[-0.04em] text-navy-900">Special thanks to</h2>
-              <ul className="mt-8 flex flex-wrap justify-center gap-3">
-                {supporters.map((p) => (
-                  <li key={p.id}>
-                    {p.instagram ? (
-                      <a href={`https://www.instagram.com/${p.instagram}/`} target="_blank" rel="noopener noreferrer" className="inline-block rounded-xl bg-secondary px-5 py-3 font-medium text-white hover:bg-navy-900">
-                        @{p.instagram}
-                      </a>
-                    ) : (
-                      <span className="inline-block rounded-xl bg-secondary px-5 py-3 font-medium text-white">{p.name}</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              {(['platinum', 'gold', 'green'] as const).map((tier) => {
+                const list = supporters.filter((p) => p.tier === tier)
+                if (!list.length) return null
+                return (
+                  <ul key={tier} aria-label={`${badge[tier].label} supporters`} className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                    {list.map((p) => (
+                      <li key={p.id}>
+                        {p.instagram ? (
+                          <a href={`https://www.instagram.com/${p.instagram}/`} target="_blank" rel="noopener noreferrer" className="inline-block transition hover:-translate-y-0.5">
+                            <Badge tier={tier}>@{p.instagram}</Badge>
+                          </a>
+                        ) : (
+                          <Badge tier={tier}>{p.name}</Badge>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )
+              })}
             </div>
           )}
         </Container>

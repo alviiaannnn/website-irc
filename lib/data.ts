@@ -1,4 +1,4 @@
-import { publicDb as db } from './supabase'
+import { publicDb as db, serviceDb } from './supabase'
 
 export type Media = { id: string; path: string; alt: string; width: number | null; height: number | null }
 const M = 'id,path,alt,width,height'
@@ -157,7 +157,13 @@ export const getSponsors = () =>
 
 export const isPodium = (result: string | null) => !!result && /^(1st|2nd|3rd)\b/i.test(result)
 
-export type Supporter = { id: string; name: string; instagram: string | null }
-// Only these columns are granted to visitors; contact and amount stay private.
-export const getSupporters = () =>
-  q<Supporter[]>(db.from('supporters').select('id,name,instagram').order('sort_order').order('created_at'))
+export type Tier = 'green' | 'gold' | 'platinum'
+export const tierFor = (amount: number): Tier => (amount >= 800000 ? 'platinum' : amount >= 400000 ? 'gold' : 'green')
+export type Supporter = { id: string; name: string; instagram: string | null; tier: Tier }
+// Amounts are private (visitors are not granted the column), so read them server-side and hand out only the tier.
+export async function getSupporters(): Promise<Supporter[]> {
+  const rows = await q<{ id: string; name: string; instagram: string | null; amount: number }[]>(
+    serviceDb().from('supporters').select('id,name,instagram,amount').eq('is_published', true).order('sort_order').order('created_at'),
+  )
+  return rows.map(({ amount, ...r }) => ({ ...r, tier: tierFor(amount) }))
+}

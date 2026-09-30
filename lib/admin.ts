@@ -167,10 +167,10 @@ export const modules: Record<string, Module> = {
     fields: [
       { name: 'name', label: 'Name', type: 'text', required: true },
       { name: 'instagram', label: 'Instagram username', type: 'text', help: 'Without @. Shown on the website and used for the Instagram thank-you tag.' },
-      { name: 'amount', label: 'Amount (IDR)', type: 'number', required: true },
+      { name: 'amount', label: 'Amount (IDR)', type: 'number', required: true, help: 'Sets the name badge: 100.000+ green (M), 400.000+ gold (L), 800.000+ platinum (XL).' },
       { name: 'contact', label: 'Email or WhatsApp', type: 'text', help: 'Optional. Private, never shown on the website.' },
       { name: 'message', label: 'Message', type: 'textarea' },
-      { name: 'is_published', label: 'Show in "Special thanks to" on the website (IDR 400.000+ tier)', type: 'bool' },
+      { name: 'is_published', label: 'Payment received: show in "Special thanks to" on the website', type: 'bool' },
       order,
     ],
   },

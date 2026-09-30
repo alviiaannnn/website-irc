@@ -12,6 +12,11 @@
   --color-navy-600: #466781;
   --color-navy-400: #6a879f;
   --color-navy-200: #c6d3de;
+  /* Individual support tiers (name badges in "Special thanks to") */
+  --color-tier-green: #1f7a4d;
+  --color-tier-gold: #d9a520;
+  --color-tier-gold-light: #f6dc7a;
+  --color-tier-platinum: #cfd6de;
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }

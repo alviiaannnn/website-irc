@@ -129,13 +129,13 @@ const sections = [
     cta_label: 'Become a Sponsor', cta_href: '/contact?topic=sponsorship' },
   { page: 'support', key: 'support', title: 'Contribute your support',
     body: "IRC's journey is powered by people who believe in it. Support us as an individual and be part of our road to SAFMC 2027." },
-  { page: 'support', key: 'tier-1', title: 'IDR 100.000', body: '- Thank-you shoutout on our official Instagram Story' },
+  { page: 'support', key: 'tier-1', title: 'IDR 100.000', body: '- Special thanks on our website (green name badge, size M)' },
   { page: 'support', key: 'tier-2', title: 'IDR 400.000',
-    body: '- Thank-you mention on our Instagram\n- Your name featured on our official website\n- Your name in our after-movie credits' },
+    body: '- Special thanks on our website (gold name badge, size L)\n- Instagram post after the competition\n- Your name in our after-movie' },
   { page: 'support', key: 'tier-3', title: 'IDR 800.000',
-    body: '- Your name on our robot\n- Credit in our after-movie\n- Shoutout on our website\n- Featured in our Instagram Story' },
+    body: '- Special thanks on our website (platinum name badge, size XL)\n- Instagram post after the competition\n- Your name in our after-movie' },
   { page: 'support', key: 'pledge', title: 'Support IRC', cta_label: 'Support IRC', cta_href: null, // Google Form link, set in admin
-    body: 'Fill in our support form: it has the bank details and everything else you need. Once your contribution arrives, we thank you on Instagram, and from IDR 400.000 your Instagram username appears below in "Special thanks to".' },
+    body: 'Fill in our support form: it has the bank details and everything else you need. Once your contribution arrives, your name appears below in "Special thanks to" with the badge of your tier.' },
 
   { page: 'contact', key: 'intro', title: 'Contact us',
     body: 'Reach IPB Robotic Club about sponsorship, research collaboration, media, or anything else.' },
