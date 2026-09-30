@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 const links = [
   { href: '/', label: 'Home' },
@@ -19,7 +19,14 @@ const links = [
   },
   { href: '/gallery-news', label: 'Gallery & News' },
   { href: '/teams', label: 'Teams' },
-  { href: '/sponsors', label: 'Sponsors' },
+  {
+    label: 'Support',
+    href: '/sponsors',
+    children: [
+      { href: '/sponsors', label: 'Sponsors' },
+      { href: '/support', label: 'Individual Support' },
+    ],
+  },
 ]
 
 /** "IRC." wordmark with the red dot, as in irc-mobile. */
@@ -34,20 +41,19 @@ export function Wordmark({ light }: { light?: boolean }) {
 export function Navbar({ orgName }: { orgName: string }) {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [dropOpen, setDropOpen] = useState(false)
-  const dropRef = useRef<HTMLLIElement>(null)
+  const [dropOpen, setDropOpen] = useState<string | null>(null) // label of the open dropdown
 
   // Close menus on navigation.
   const [lastPath, setLastPath] = useState(pathname)
   if (lastPath !== pathname) {
     setLastPath(pathname)
     setMenuOpen(false)
-    setDropOpen(false)
+    setDropOpen(null)
   }
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && (setDropOpen(false), setMenuOpen(false))
-    const onClick = (e: MouseEvent) => !dropRef.current?.contains(e.target as Node) && setDropOpen(false)
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && (setDropOpen(null), setMenuOpen(false))
+    const onClick = (e: MouseEvent) => !(e.target as Element).closest('[data-dropdown]') && setDropOpen(null)
     document.addEventListener('keydown', onKey)
     document.addEventListener('click', onClick)
     return () => {
@@ -57,8 +63,8 @@ export function Navbar({ orgName }: { orgName: string }) {
   }, [])
 
   const active = (href: string) => (href === '/' ? pathname === '/' : pathname.startsWith(href.split('#')[0]))
-  const linkCls = (href: string) =>
-    `rounded-lg px-2.5 py-2 text-sm font-medium transition-colors lg:px-3 ${active(href) ? 'text-navy-900' : 'text-navy-600 hover:text-navy-900'}`
+  const linkCls = (on: boolean) =>
+    `rounded-lg px-2.5 py-2 text-sm font-medium transition-colors lg:px-3 ${on ? 'text-navy-900' : 'text-navy-600 hover:text-navy-900'}`
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 border-b border-navy-200/70 bg-white/90 backdrop-blur-md">
@@ -71,21 +77,21 @@ export function Navbar({ orgName }: { orgName: string }) {
         <ul className="hidden items-center gap-0.5 md:flex">
           {links.map((l) =>
             l.children ? (
-              <li key={l.label} ref={dropRef} className="relative">
+              <li key={l.label} data-dropdown className="relative">
                 <button
                   type="button"
-                  aria-expanded={dropOpen}
-                  aria-controls="research-menu"
-                  onClick={() => setDropOpen((o) => !o)}
-                  className={`${linkCls(l.href)} inline-flex items-center gap-1`}
+                  aria-expanded={dropOpen === l.label}
+                  aria-controls={`${l.label}-menu`}
+                  onClick={() => setDropOpen((o) => (o === l.label ? null : l.label))}
+                  className={`${linkCls(l.children.some((c) => active(c.href)))} inline-flex items-center gap-1`}
                 >
                   {l.label}
-                  <svg aria-hidden viewBox="0 0 20 20" className={`size-4 fill-current transition-transform ${dropOpen ? 'rotate-180' : ''}`}><path d="M5 7l5 6 5-6z" /></svg>
+                  <svg aria-hidden viewBox="0 0 20 20" className={`size-4 fill-current transition-transform ${dropOpen === l.label ? 'rotate-180' : ''}`}><path d="M5 7l5 6 5-6z" /></svg>
                 </button>
-                <ul id="research-menu" hidden={!dropOpen} className="absolute top-full left-0 mt-2 w-60 rounded-xl border border-navy-200/70 bg-white p-1.5 shadow-lg shadow-navy-900/5">
+                <ul id={`${l.label}-menu`} hidden={dropOpen !== l.label} className="absolute top-full left-1/2 mt-2 w-60 -translate-x-1/2 rounded-xl border border-navy-200/70 bg-white p-1.5 shadow-lg shadow-navy-900/5">
                   {l.children.map((c, i) => (
                     <li key={c.href}>
-                      <Link href={c.href} onClick={() => setDropOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-navy-900 hover:bg-surface">
+                      <Link href={c.href} onClick={() => setDropOpen(null)} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-navy-900 hover:bg-surface">
                         <span className="font-mono text-xs text-navy-600">0{i + 1}</span>
                         {c.label}
                       </Link>
@@ -95,7 +101,7 @@ export function Navbar({ orgName }: { orgName: string }) {
               </li>
             ) : (
               <li key={l.href}>
-                <Link href={l.href} className={linkCls(l.href)} aria-current={active(l.href) ? 'page' : undefined}>
+                <Link href={l.href} className={linkCls(active(l.href))} aria-current={active(l.href) ? 'page' : undefined}>
                   {l.label}
                   {active(l.href) && <span aria-hidden className="text-primary">.</span>}
                 </Link>

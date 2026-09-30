@@ -163,7 +163,7 @@ export const modules: Record<string, Module> = {
   },
   supporters: {
     table: 'supporters', title: 'Supporters', hint: 'Individual supporters from the Google Form. Add them once the payment arrives.',
-    label: 'name', meta: ['instagram', 'amount'], order: ['sort_order', '-created_at'], create: true, view: () => '/sponsors#support',
+    label: 'name', meta: ['instagram', 'amount'], order: ['sort_order', '-created_at'], create: true, view: () => '/support',
     fields: [
       { name: 'name', label: 'Name', type: 'text', required: true },
       { name: 'instagram', label: 'Instagram username', type: 'text', help: 'Without @. Shown on the website and used for the Instagram thank-you tag.' },

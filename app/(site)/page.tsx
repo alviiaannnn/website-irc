@@ -48,8 +48,8 @@ export default async function Home() {
             <h1 className="mt-5 text-5xl leading-[1.05] font-semibold tracking-[-0.05em] text-balance text-navy-900 md:text-6xl">{hero?.title}</h1>
             <Markdown text={hero?.body} className="mt-6 text-lg leading-relaxed text-navy-600" />
             <div className="mt-10 flex flex-wrap gap-3">
-              {hero?.cta_href && <ButtonLink href={hero.cta_href}>{hero.cta_label}</ButtonLink>}
-              <ButtonLink href="/contact" variant="outline">Contact Us</ButtonLink>
+              <ButtonLink href="/support">Individual Support</ButtonLink>
+              <ButtonLink href={hero?.cta_href ?? '/contact?topic=sponsorship'} variant="outline">{hero?.cta_label ?? 'Become a Sponsor'}</ButtonLink>
             </div>
             <p className="mt-14 text-xs text-navy-600">Competing at {competitions.map((c) => c.short_name ?? c.name).join(' · ')}</p>
           </div>
