@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import { Block, Container, Img, Markdown, NavyPanel, PageHeader, SectionHeading, StepPills, Tags, leadText, listItems } from '@/components/ui'
+import { Block, Container, Img, Markdown, NavyPanel, PageHeader, SectionHeading, StepPills, Tags } from '@/components/ui'
+import { leadText, listItems } from '@/lib/text'
 import { getSections } from '@/lib/data'
 
 export const metadata: Metadata = {

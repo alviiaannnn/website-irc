@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { mediaUrl } from '@/lib/media'
+import { listItems, type ListNode } from '@/lib/text'
 import type { Competition, Entry, Media, News, Person, Project, Section, Sponsor, Team } from '@/lib/data'
 
 export function Container({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -50,25 +51,7 @@ function inline(text: string): ReactNode[] {
     return part
   })
 }
-type Node = { text: string; children: Node[] }
-export function listItems(text: string | null | undefined): Node[] {
-  const root: Node[] = []
-  const stack = [{ depth: -1, list: root }]
-  for (const line of (text ?? '').split('\n')) {
-    const m = line.match(/^(\s*)- (.*)$/)
-    if (!m) continue
-    while (stack[stack.length - 1].depth >= m[1].length) stack.pop()
-    const node = { text: m[2], children: [] }
-    stack[stack.length - 1].list.push(node)
-    stack.push({ depth: m[1].length, list: node.children })
-  }
-  return root
-}
-/** Body text without its lists (the lists are rendered separately, e.g. as pills). */
-export const leadText = (text: string | null | undefined) =>
-  (text ?? '').split(/\n\s*\n/).filter((b) => !/^\s*- /.test(b)).join('\n\n')
-
-const List = ({ items }: { items: Node[] }) => (
+const List = ({ items }: { items: ListNode[] }) => (
   <ul>
     {items.map((n, i) => (
       <li key={i}>

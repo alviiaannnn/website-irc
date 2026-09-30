@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
-import { ButtonLink, Container, Markdown, PageHeader, StepPills, listItems } from '@/components/ui'
+import { ButtonLink, Container, Markdown, PageHeader, StepPills } from '@/components/ui'
 import { getSections, getSupporters } from '@/lib/data'
+import { listItems } from '@/lib/text'
 
 export const metadata: Metadata = {
   title: 'Individual Support',

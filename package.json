@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "node --experimental-strip-types --env-file=.env.local scripts/seed.mts"
+    "seed": "node --experimental-strip-types --env-file=.env.local scripts/seed.mts",
+    "check": "node --experimental-strip-types scripts/check-text.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
