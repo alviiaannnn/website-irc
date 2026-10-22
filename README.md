@@ -20,6 +20,8 @@ Portfolio site for IPB Robotic Club (IRC). Next.js 16 (App Router) + Supabase + 
 
 Add the env vars from `.env.example` in the Vercel dashboard (`SUPABASE_SERVICE_ROLE_KEY` is server-only; it is needed for inviting/removing admin accounts). Set `NEXT_PUBLIC_SITE_URL` to the production URL and add it to Supabase Redirect URLs.
 
+Free Supabase projects pause after a week without database activity. `vercel.json` runs a daily cron on `/api/keepalive` (one tiny query) to prevent that; set `CRON_SECRET` in Vercel to any long random string, since Vercel sends it as the bearer token.
+
 ## Where things are
 
 | Path | What |
