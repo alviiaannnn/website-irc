@@ -55,6 +55,7 @@ export default async function EditRow({ params, searchParams }: PageProps<'/admi
       case 'textarea':
         return <textarea {...common} rows={f.name === 'body' || f.name === 'description' || f.name === 'journey' ? 9 : 4} defaultValue={(v as string) ?? ''} className={`${inputCls} leading-relaxed`} />
       case 'lines':
+      case 'buttons':
         return <textarea {...common} rows={5} defaultValue={((v as string[]) ?? []).join('\n')} className={inputCls} />
       case 'tags':
         return <input {...common} defaultValue={((v as string[]) ?? []).join(', ')} className={inputCls} />
@@ -81,9 +82,9 @@ export default async function EditRow({ params, searchParams }: PageProps<'/admi
 
   const isSection = key === 'page-sections'
   const page = isSection ? sitePages.find((p) => p.slug === row.page) : sitePages.find((p) => homeOf(key).startsWith(`/admin/pages/${p.slug}#`))
-  const where = isSection ? sectionInfo(String(row.page), String(row.key))?.[1] : null
+  const where = isSection ? sectionInfo(String(row.page), String(row.key))?.label : null
   const toggles = fields.filter((f) => f.type === 'bool')
-  const title = isSection ? String(row.title || row.key) : mod.singleton ? mod.title : isNew ? `New ${mod.title.toLowerCase()} item` : String(row[mod.label] ?? 'Untitled')
+  const title = isSection ? String(row.title || where || row.key) : mod.singleton ? mod.title : isNew ? `New ${mod.title.toLowerCase()} item` : String(row[mod.label] ?? 'Untitled')
   const crumbs = [
     { href: '/admin', label: 'Dashboard' },
     ...(page ? [{ href: `/admin/pages/${page.slug}`, label: page.name }] : []),

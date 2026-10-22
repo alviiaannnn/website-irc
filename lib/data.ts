@@ -24,15 +24,15 @@ export const getSettings = () =>
 
 export type Section = {
   key: string
+  eyebrow: string | null
   title: string | null
   body: string | null
-  cta_label: string | null
-  cta_href: string | null
+  buttons: string[]
   media: Media | null
 }
 export async function getSections(page: string): Promise<Partial<Record<string, Section>>> {
   const rows = await q<Section[]>(
-    db.from('page_sections').select(`key,title,body,cta_label,cta_href,media:media!media_id(${M})`).eq('page', page),
+    db.from('page_sections').select(`key,eyebrow,title,body,buttons,media:media!media_id(${M})`).eq('page', page),
   )
   return Object.fromEntries(rows.map((r) => [r.key, r]))
 }

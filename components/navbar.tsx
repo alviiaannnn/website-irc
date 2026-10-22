@@ -5,29 +5,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-const links = [
-  { href: '/', label: 'Home' },
-  { href: '/about', label: 'About' },
-  {
-    label: 'Research',
-    href: '/research',
-    children: [
-      { href: '/research#teams', label: 'Research Teams' },
-      { href: '/research#projects', label: 'Projects' },
-      { href: '/research#competitions', label: 'Competitions' },
-    ],
-  },
-  { href: '/gallery-news', label: 'Gallery & News' },
-  { href: '/teams', label: 'Teams' },
-  {
-    label: 'Support',
-    href: '/sponsors',
-    children: [
-      { href: '/sponsors', label: 'Sponsors' },
-      { href: '/support', label: 'Individual Support' },
-    ],
-  },
-]
+type MenuLink = { label: string; href: string }
+export type MenuItem = MenuLink & { children: MenuLink[] }
 
 /** "IRC." wordmark with the red dot, as in irc-mobile. */
 export function Wordmark({ light }: { light?: boolean }) {
@@ -38,7 +17,8 @@ export function Wordmark({ light }: { light?: boolean }) {
   )
 }
 
-export function Navbar({ orgName }: { orgName: string }) {
+/** Menu items and the button come from Admin → Menu & footer. */
+export function Navbar({ orgName, links, button }: { orgName: string; links: MenuItem[]; button: MenuLink | null }) {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
   const [dropOpen, setDropOpen] = useState<string | null>(null) // label of the open dropdown
@@ -75,20 +55,20 @@ export function Navbar({ orgName }: { orgName: string }) {
         </Link>
 
         <ul className="hidden items-center gap-0.5 md:flex">
-          {links.map((l) =>
-            l.children ? (
-              <li key={l.label} data-dropdown className="relative">
+          {links.map((l, n) =>
+            l.children.length ? (
+              <li key={l.label + l.href} data-dropdown className="relative">
                 <button
                   type="button"
                   aria-expanded={dropOpen === l.label}
-                  aria-controls={`${l.label}-menu`}
+                  aria-controls={`nav-menu-${n}`}
                   onClick={() => setDropOpen((o) => (o === l.label ? null : l.label))}
                   className={`${linkCls(l.children.some((c) => active(c.href)))} inline-flex items-center gap-1`}
                 >
                   {l.label}
                   <svg aria-hidden viewBox="0 0 20 20" className={`size-4 fill-current transition-transform ${dropOpen === l.label ? 'rotate-180' : ''}`}><path d="M5 7l5 6 5-6z" /></svg>
                 </button>
-                <ul id={`${l.label}-menu`} hidden={dropOpen !== l.label} className="absolute top-full left-1/2 mt-2 w-60 -translate-x-1/2 rounded-xl border border-navy-200/70 bg-white p-1.5 shadow-lg shadow-navy-900/5">
+                <ul id={`nav-menu-${n}`} hidden={dropOpen !== l.label} className="absolute top-full left-1/2 mt-2 w-60 -translate-x-1/2 rounded-xl border border-navy-200/70 bg-white p-1.5 shadow-lg shadow-navy-900/5">
                   {l.children.map((c, i) => (
                     <li key={c.href}>
                       <Link href={c.href} onClick={() => setDropOpen(null)} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-navy-900 hover:bg-surface">
@@ -100,7 +80,7 @@ export function Navbar({ orgName }: { orgName: string }) {
                 </ul>
               </li>
             ) : (
-              <li key={l.href}>
+              <li key={l.label + l.href}>
                 <Link href={l.href} className={linkCls(active(l.href))} aria-current={active(l.href) ? 'page' : undefined}>
                   {l.label}
                   {active(l.href) && <span aria-hidden className="text-primary">.</span>}
@@ -108,11 +88,13 @@ export function Navbar({ orgName }: { orgName: string }) {
               </li>
             ),
           )}
-          <li className="ml-2">
-            <Link href="/contact" className="inline-flex min-h-10 items-center rounded-xl bg-primary-ink px-4 text-sm font-semibold text-white transition hover:brightness-90">
-              Contact
-            </Link>
-          </li>
+          {button && (
+            <li className="ml-2">
+              <Link href={button.href} className="inline-flex min-h-10 items-center rounded-xl bg-primary-ink px-4 text-sm font-semibold text-white transition hover:brightness-90">
+                {button.label}
+              </Link>
+            </li>
+          )}
         </ul>
 
         <button
@@ -132,9 +114,9 @@ export function Navbar({ orgName }: { orgName: string }) {
       <div id="mobile-menu" hidden={!menuOpen} className="max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-navy-200/70 bg-white md:hidden">
         <ul className="mx-auto max-w-[1200px] divide-y divide-navy-200/70 px-4">
           {links.map((l) => (
-            <li key={l.label} className="py-1">
+            <li key={l.label + l.href} className="py-1">
               <Link href={l.href} className="block py-3 text-lg font-semibold tracking-tight text-navy-900">{l.label}</Link>
-              {l.children && (
+              {l.children.length > 0 && (
                 <ul className="pb-2">
                   {l.children.map((c, i) => (
                     <li key={c.href}>
@@ -148,9 +130,11 @@ export function Navbar({ orgName }: { orgName: string }) {
               )}
             </li>
           ))}
-          <li className="py-4">
-            <Link href="/contact" className="flex min-h-12 items-center justify-center rounded-xl bg-primary-ink font-semibold text-white">Contact</Link>
-          </li>
+          {button && (
+            <li className="py-4">
+              <Link href={button.href} className="flex min-h-12 items-center justify-center rounded-xl bg-primary-ink font-semibold text-white">{button.label}</Link>
+            </li>
+          )}
         </ul>
       </div>
     </header>

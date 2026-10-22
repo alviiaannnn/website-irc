@@ -1,6 +1,6 @@
 import {
   Block,
-  ButtonLink,
+  Buttons,
   Container,
   Eyebrow,
   Img,
@@ -15,15 +15,15 @@ import {
   SponsorLogoGrid,
   StepPills,
 } from '@/components/ui'
-import { getCompetitions, getEntries, getNews, getProjects, getSections, getSponsors, getTeams, isPodium } from '@/lib/data'
+import { getEntries, getNews, getProjects, getSections, getSponsors, getTeams, isPodium } from '@/lib/data'
+import { fill, pairs } from '@/lib/text'
 
 export default async function Home() {
-  const [s, teams, projects, entries, competitions, news, sponsors] = await Promise.all([
+  const [s, teams, projects, entries, news, sponsors] = await Promise.all([
     getSections('home'),
     getTeams(),
     getProjects(),
     getEntries(),
-    getCompetitions(),
     getNews(),
     getSponsors(),
   ])
@@ -31,26 +31,25 @@ export default async function Home() {
   const featured = projects.filter((p) => p.is_featured).slice(0, 3)
   // Podium finishes first, then other ranked results; newest first within each.
   const results = [...entries.filter((e) => isPodium(e.result)), ...entries.filter((e) => e.result && !isPodium(e.result))].slice(0, 6)
-  const stats = [
-    { title: 'Competing since', value: entries.length ? Math.min(...entries.map((e) => e.year)) : '—' },
-    { title: 'Competitions entered', value: new Set(entries.map((e) => e.event)).size },
-    { title: 'Podium finishes', value: entries.filter((e) => isPodium(e.result)).length },
-    { title: 'Robotics projects', value: projects.length },
-  ]
+  // Admin → Home → "Numbers on the team photo": "- Label: value", where {since} etc. are counted here.
+  const counts = {
+    since: entries.length ? Math.min(...entries.map((e) => e.year)) : '—',
+    competitions: new Set(entries.map((e) => e.event)).size,
+    podiums: entries.filter((e) => isPodium(e.result)).length,
+    projects: projects.length,
+  }
+  const stats = pairs(s.stats?.body).map((p) => ({ ...p, value: fill(p.value, counts) }))
 
   return (
     <>
       <section className="grid pt-16 md:pt-18 lg:min-h-svh lg:grid-cols-2">
         <div className="flex items-center">
           <div className="fade-up w-full px-4 py-16 md:px-6 lg:ml-auto lg:max-w-[600px] lg:py-24 lg:pr-12">
-            <Eyebrow>IPB Robotic Club</Eyebrow>
+            <Eyebrow>{hero?.eyebrow}</Eyebrow>
             <h1 className="mt-5 text-5xl leading-[1.05] font-semibold tracking-[-0.05em] text-balance text-navy-900 md:text-6xl">{hero?.title}</h1>
             <Markdown text={hero?.body} className="mt-6 text-lg leading-relaxed text-navy-600" />
-            <div className="mt-10 flex flex-wrap gap-3">
-              <ButtonLink href="/support">Individual Support</ButtonLink>
-              <ButtonLink href={hero?.cta_href ?? '/contact?topic=sponsorship'} variant="outline">{hero?.cta_label ?? 'Become a Sponsor'}</ButtonLink>
-            </div>
-            <p className="mt-14 text-xs text-navy-600">Competing at {competitions.map((c) => c.short_name ?? c.name).join(' · ')}</p>
+            <Buttons items={hero?.buttons} className="mt-10" />
+            {s['hero-note']?.body && <p className="mt-14 text-xs text-navy-600">{s['hero-note'].body}</p>}
           </div>
         </div>
         {/* Team photo under a navy wash, with the ring, the teams and the numbers on top. */}
@@ -61,26 +60,28 @@ export default async function Home() {
           <Ring className="-top-24 -right-24 w-[24rem] border-[44px] md:-top-32 md:-right-32 md:w-[34rem] md:border-[64px]" />
           <div className="relative flex h-full flex-col justify-end gap-10 px-4 py-16 md:px-6 lg:max-w-[600px] lg:py-24 lg:pl-12">
             <StepPills items={teams.map((t) => ({ label: t.name, href: `/research#${t.slug}` }))} />
-            <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/15 bg-white/15 backdrop-blur-sm">
-              {stats.map((st) => (
-                <div key={st.title} className="bg-navy-900/60 p-5">
-                  <dt className="text-xs font-medium tracking-wide text-navy-200 uppercase">{st.title}</dt>
-                  <dd className="mt-2 font-mono text-3xl font-semibold tracking-tight text-white md:text-4xl">{st.value}</dd>
-                </div>
-              ))}
-            </dl>
-            {hero?.media && <p className="text-xs text-navy-200">{hero.media.alt}</p>}
+            {stats.length > 0 && (
+              <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/15 bg-white/15 backdrop-blur-sm">
+                {stats.map((st) => (
+                  <div key={st.label} className="bg-navy-900/60 p-5">
+                    <dt className="text-xs font-medium tracking-wide text-navy-200 uppercase">{st.label}</dt>
+                    <dd className="mt-2 font-mono text-3xl font-semibold tracking-tight text-white md:text-4xl">{st.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+            {s['hero-caption']?.body && <p className="text-xs text-navy-200">{s['hero-caption'].body}</p>}
           </div>
         </div>
       </section>
 
-      <Block section={s.research} eyebrow="Research" link={{ href: '/research#teams', label: 'All research teams' }}>
+      <Block section={s.research}>
         <div className="cards grid gap-6 md:grid-cols-3">
           {teams.map((t) => <ResearchTeamCard key={t.id} team={t} />)}
         </div>
       </Block>
 
-      <Block section={s.projects} eyebrow="Projects" link={{ href: '/research#projects', label: 'All projects' }} tone="surface">
+      <Block section={s.projects} tone="surface">
         <div className="cards grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {featured.map((p) => <ProjectCard key={p.id} project={p} />)}
         </div>
@@ -89,20 +90,20 @@ export default async function Home() {
       <section className="py-20 md:py-28">
         <Container>
           <NavyPanel>
-            <SectionHeading section={s.achievements} eyebrow="Results" dark />
+            <SectionHeading section={s.achievements} dark />
             <div className="mt-10"><ResultRows entries={results} dark /></div>
-            <div className="mt-8"><ButtonLink href="/research#competitions" variant="light">All competitions</ButtonLink></div>
+            <Buttons items={s.achievements?.buttons} dark quiet className="mt-8" />
           </NavyPanel>
         </Container>
       </section>
 
       {news.length > 0 && (
-        <Block section={s.news} eyebrow="Coverage" link={{ href: '/gallery-news#news', label: 'All coverage' }} tone="surface">
+        <Block section={s.news} tone="surface">
           <NewsList news={news.slice(0, 3)} />
         </Block>
       )}
 
-      <Block section={s.sponsors} eyebrow="Sponsors" link={{ href: '/sponsors', label: 'Become a sponsor' }}>
+      <Block section={s.sponsors}>
         <SponsorLogoGrid sponsors={sponsors} />
       </Block>
 
@@ -110,7 +111,7 @@ export default async function Home() {
         <Container>
           <NavyPanel>
             <SectionHeading section={s.cta} dark />
-            {s.cta?.cta_href && <div className="mt-8"><ButtonLink href={s.cta.cta_href}>{s.cta.cta_label}</ButtonLink></div>}
+            <Buttons items={s.cta?.buttons} dark className="mt-8" />
           </NavyPanel>
         </Container>
       </section>

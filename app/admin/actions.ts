@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { homeOf, modules, pageNames, sectionInfo, sitePages, type Field } from '@/lib/admin'
 import { requireAdmin, requireEditor } from '@/lib/auth'
+import { isLinkLine } from '@/lib/text'
 import { serviceDb, sessionDb } from '@/lib/supabase'
 
 export type ActionState = { error?: string; ok?: string } | null
@@ -27,6 +28,11 @@ function parse(f: Field, fd: FormData): { value?: unknown; error?: string } {
   if (f.type === 'bool') return { value: raw === 'on' }
   if (f.type === 'tags') return { value: s.split(',').map((t) => t.trim()).filter(Boolean) }
   if (f.type === 'lines') return { value: s.split('\n').map((t) => t.trim()).filter(Boolean) }
+  if (f.type === 'buttons') {
+    const lines = s.split('\n').map((t) => t.trim()).filter(Boolean)
+    const bad = lines.find((l) => !isLinkLine(l))
+    return bad ? { error: `${f.label}: "${bad}" needs the form Label | link (a link starts with /, #, https://, mailto: or tel:).` } : { value: lines }
+  }
   if (f.type === 'gallery') return { value: fd.getAll(f.name).filter((v) => typeof v === 'string' && uuid.test(v)) }
   if (!s) return f.required ? { error: `${f.label} is required.` } : { value: null }
   const ok = {
@@ -134,8 +140,8 @@ export async function searchIndex(): Promise<SearchEntry[]> {
   const { data: sections } = await db.from('page_sections').select('id,page,key,title,body')
   for (const r of sections ?? [])
     out.push({
-      title: r.title || r.key,
-      where: `${pageNames[r.page] ?? r.page} page · ${sectionInfo(r.page, r.key)?.[1] ?? r.key}`,
+      title: r.title || r.body?.split('\n')[0].replace(/^- /, '').slice(0, 80) || r.key,
+      where: `${pageNames[r.page] ?? r.page} page · ${sectionInfo(r.page, r.key)?.label ?? r.key}`,
       href: `/admin/page-sections/${r.id}`,
       text: r.body?.slice(0, 400),
     })

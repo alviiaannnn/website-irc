@@ -1,17 +1,9 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import type { Settings } from '@/lib/data'
+import type { Section, Settings } from '@/lib/data'
+import { fill } from '@/lib/text'
 import { Wordmark } from './navbar'
-import { Container, Ring } from './ui'
-
-const explore = [
-  ['/about', 'About'],
-  ['/research', 'Research'],
-  ['/gallery-news', 'Gallery & News'],
-  ['/teams', 'Teams'],
-  ['/sponsors', 'Sponsors'],
-  ['/contact', 'Contact'],
-]
+import { Container, pillsFrom, Ring } from './ui'
 
 export const icons = {
   instagram: 'M12 2.2c3.2 0 3.6 0 4.8.1 3.3.1 4.8 1.7 4.9 4.9.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.8c-.1 3.2-1.7 4.8-4.9 4.9-1.3.1-1.6.1-4.8.1s-3.6 0-4.8-.1c-3.3-.1-4.8-1.7-4.9-4.9C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.8C2.4 3.9 3.9 2.4 7.2 2.3 8.4 2.2 8.8 2.2 12 2.2zm0 4.7a5.1 5.1 0 1 0 0 10.2 5.1 5.1 0 0 0 0-10.2zm0 8.4a3.3 3.3 0 1 1 0-6.6 3.3 3.3 0 0 1 0 6.6zm5.3-9.8a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4z',
@@ -21,7 +13,8 @@ export const icons = {
 
 const heading = 'text-xs font-semibold tracking-[0.18em] text-navy-200 uppercase'
 
-export function Footer({ settings }: { settings: Settings }) {
+// Texts and links: Admin → Menu & footer.
+export function Footer({ settings, s }: { settings: Settings; s: Partial<Record<string, Section>> }) {
   const socials = [
     { href: settings.socials.instagram, label: 'Instagram', d: icons.instagram },
     { href: settings.socials.linkedin, label: 'LinkedIn', d: icons.linkedin },
@@ -39,22 +32,22 @@ export function Footer({ settings }: { settings: Settings }) {
           <p className="mt-5 max-w-xs text-sm leading-relaxed text-navy-200">{settings.description}</p>
         </div>
         <nav aria-label="Footer">
-          <h2 className={heading}>Explore</h2>
+          <h2 className={heading}>{s['footer-explore']?.title}</h2>
           <ul className="mt-4 space-y-2.5">
-            {explore.map(([href, label]) => (
-              <li key={href}><Link href={href} className="text-sm font-medium text-white hover:underline">{label}</Link></li>
+            {pillsFrom(s['footer-explore']).filter((l) => l.href).map((l) => (
+              <li key={l.label + l.href}><Link href={l.href} className="text-sm font-medium text-white hover:underline">{l.label}</Link></li>
             ))}
           </ul>
         </nav>
         <div>
-          <h2 className={heading}>Contact</h2>
+          <h2 className={heading}>{s['footer-contact']?.title}</h2>
           <address className="mt-4 space-y-2.5 text-sm leading-relaxed text-white not-italic">
             <p>{settings.address}</p>
             {settings.email && <p><a href={`mailto:${settings.email}`} className="hover:underline">{settings.email}</a></p>}
           </address>
         </div>
         <div>
-          <h2 className={heading}>Follow us</h2>
+          <h2 className={heading}>{s['footer-follow']?.title}</h2>
           <ul className="mt-4 flex gap-2">
             {socials.map((i) => (
               <li key={i.label}>
@@ -69,11 +62,17 @@ export function Footer({ settings }: { settings: Settings }) {
       </Container>
       <div className="relative border-t border-white/15">
         <Container className="flex flex-wrap items-center justify-between gap-3 py-6 text-xs text-navy-200">
-          <span>© {new Date().getFullYear()} {settings.org_name}. All rights reserved.</span>
-          <Link href="/admin" className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 font-medium text-navy-200 hover:bg-white/10 hover:text-white">
-            <svg aria-hidden viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
-            Admin login
-          </Link>
+          <span>{fill(s['footer-bottom']?.body, { year: new Date().getFullYear(), org: settings.org_name })}</span>
+          <span className="flex flex-wrap gap-1">
+            {pillsFrom(s['footer-bottom']).filter((l) => l.href).map((l) => (
+              <Link key={l.label + l.href} href={l.href} className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 font-medium text-navy-200 hover:bg-white/10 hover:text-white">
+                {l.href.startsWith('/admin') && (
+                  <svg aria-hidden viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+                )}
+                {l.label}
+              </Link>
+            ))}
+          </span>
         </Container>
       </div>
     </footer>

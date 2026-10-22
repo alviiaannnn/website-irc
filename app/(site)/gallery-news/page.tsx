@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { GalleryGrid } from '@/components/gallery'
-import { Block, NewsList, PageHeader, StepPills } from '@/components/ui'
+import { Block, Markdown, NewsList, PageHeader, pillsFrom, StepPills } from '@/components/ui'
 import { getGallery, getNews, getSections } from '@/lib/data'
 
 export const metadata: Metadata = {
@@ -13,16 +13,16 @@ export default async function GalleryNews() {
   return (
     <>
       <PageHeader
-        eyebrow="Media"
+        eyebrow={s.intro?.eyebrow}
         title={s.intro?.title}
         body={s.intro?.body}
-        aside={<StepPills items={[{ label: `Gallery · ${gallery.length} photos`, href: '#gallery' }, { label: `News · ${news.length} stories`, href: '#news' }]} />}
+        aside={<StepPills items={pillsFrom(s.intro, { photos: gallery.length, news: news.length })} />}
       />
-      <Block id="gallery" section={s.gallery} eyebrow="Photos">
+      <Block id="gallery" section={s.gallery}>
         <GalleryGrid items={gallery} />
       </Block>
-      <Block id="news" section={s.news} eyebrow="Coverage" className="pt-0 md:pt-0">
-        {news.length ? <NewsList news={news} /> : <p className="text-navy-600">Coverage links will appear here soon.</p>}
+      <Block id="news" section={s.news} className="pt-0 md:pt-0">
+        {news.length ? <NewsList news={news} /> : <Markdown text={s['news-empty']?.body} className="text-navy-600" />}
       </Block>
     </>
   )

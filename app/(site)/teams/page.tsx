@@ -15,15 +15,15 @@ export default async function Teams() {
   return (
     <>
       <PageHeader
-        eyebrow="People"
+        eyebrow={s.intro?.eyebrow}
         title={s.intro?.title}
         body={s.intro?.body}
         aside={<StepPills items={present.map((g) => ({ label: s[g]?.title ?? g, href: `#${g}` }))} />}
       />
       {present.map((g, i) => (
-        <Block key={g} id={g} section={s[g]} eyebrow={`0${i + 1}`} tone={i % 2 ? 'surface' : undefined}>
+        <Block key={g} id={g} section={s[g]} tone={i % 2 ? 'surface' : undefined}>
           <div className="cards grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {people.filter((p) => p.group === g).map((p) => <PersonCard key={p.id} person={p} />)}
+            {people.filter((p) => p.group === g).map((p) => <PersonCard key={p.id} person={p} highlights={s['highlights-label']?.title ?? undefined} />)}
           </div>
         </Block>
       ))}

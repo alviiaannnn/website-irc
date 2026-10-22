@@ -14,6 +14,7 @@ Portfolio site for IPB Robotic Club (IRC). Next.js 16 (App Router) + Supabase + 
    - URL Configuration: Site URL = your site URL; add `http://localhost:3000/**` and `https://<your-domain>/**` to Redirect URLs (invite links land on `/admin/accept-invite`).
 4. `npm install`
 5. `npm run seed` — uploads the photos from `public/images` and fills every table from the handbook. With `SEED_ADMIN_EMAIL` set it also invites the first admin. Runs once on an empty database.
+   Then run the other files in `supabase/migrations/` in date order. `20261022000000_editable_everything.sql` turns every text that used to be hard-coded (menu, footer, small labels, buttons) into editable page text, filled with the seeded wording.
 6. `npm run dev`
 
 ## Deploy (Vercel)
@@ -36,4 +37,4 @@ Free Supabase projects pause after a week without database activity. `vercel.jso
 | `scripts/seed.mts` | Seed from the handbook |
 | `docs/asset-manifest.md` | Every image, where it is used, and what still needs confirmation |
 
-Page text supports a tiny markdown: blank line = paragraph, `- ` = list (indent 2 spaces to nest), `**bold**`, `[text](url)`.
+Page text supports a tiny markdown: blank line = paragraph, `- ` = list (indent 2 spaces to nest), `**bold**`, `[text](url)`. Buttons are one `Label | link` per line; `{placeholders}` such as `{since}` or `{year}` are filled in by the page (the admin help text lists them).

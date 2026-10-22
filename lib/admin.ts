@@ -8,7 +8,7 @@ export const cardCls = 'rounded-2xl border border-navy-200/70 bg-white shadow-xs
 
 export type FieldType =
   | 'text' | 'textarea' | 'url' | 'email' | 'slug' | 'date' | 'number' | 'bool'
-  | 'tags' | 'lines' | 'select' | 'ref' | 'media' | 'gallery'
+  | 'tags' | 'lines' | 'buttons' | 'select' | 'ref' | 'media' | 'gallery'
 
 export type Field = {
   name: string // column; "socials.instagram" writes into a jsonb column
@@ -45,13 +45,13 @@ const published: Field = { name: 'is_published', label: 'Show on the website', t
 export const modules: Record<string, Module> = {
   'page-sections': {
     table: 'page_sections', title: 'Page text', hint: 'Headings, paragraphs, buttons and photos on every public page.',
-    label: 'title', order: ['page', 'key'], view: (r) => (r.page === 'home' ? '/' : `/${r.page}`),
+    label: 'title', order: ['page', 'key'], view: (r) => sitePages.find((p) => p.slug === r.page)?.path ?? '/',
     fields: [
+      { name: 'eyebrow', label: 'Small label above the heading', type: 'text', help: 'Leave empty to hide it.' },
       { name: 'title', label: 'Heading', type: 'text' },
       { name: 'body', label: 'Text', type: 'textarea', help: md },
       { name: 'media_id', label: 'Photo', type: 'media' },
-      { name: 'cta_label', label: 'Button label', type: 'text' },
-      { name: 'cta_href', label: 'Button link', type: 'url', help: 'e.g. /contact?topic=sponsorship' },
+      { name: 'buttons', label: 'Buttons / links', type: 'buttons', help: 'One per line: Label | link. Add a line to add a button, delete a line to remove it.' },
     ],
   },
   'research-teams': {
@@ -185,9 +185,16 @@ export const modules: Record<string, Module> = {
 
 // ---------- the website, page by page ----------
 // Sections are listed in the order they appear on the page, so the admin reads top to bottom like the site.
-// [key, where it shows, extra help for the Text field]
-type SectionInfo = [key: string, label: string, help?: string]
+// `fields` says which inputs the section really uses (the form shows only those); `help` adds per-field hints.
+type SectionField = 'eyebrow' | 'title' | 'body' | 'media' | 'buttons'
+export type SectionInfo = { key: string; label: string; fields: SectionField[]; help?: Partial<Record<SectionField, string>> }
+const sec = (key: string, label: string, fields: string, help?: SectionInfo['help']): SectionInfo => ({ key, label, fields: fields.split(' ') as SectionField[], help })
+
 const list = 'Each line starting with "- " becomes one item.'
+const heading = 'eyebrow title body'
+const pills = { buttons: 'Shown as the numbered links in the navy panel at the top.' }
+const tags = { body: `First paragraph = description. ${list} (shown as tags)` }
+const fixed = (names: string) => `One line per text, in this order: ${names}. An empty line keeps the built-in text.`
 
 export type SitePage = {
   slug: string
@@ -203,13 +210,18 @@ export const sitePages: SitePage[] = [
   {
     slug: 'home', name: 'Home', path: '/', hint: 'The first page visitors see.',
     sections: [
-      ['hero', 'Top banner: headline, intro, second button and the big team photo'],
-      ['research', 'Research teams heading'],
-      ['projects', 'Featured projects heading'],
-      ['achievements', 'Achievements panel heading'],
-      ['news', 'News & coverage heading'],
-      ['sponsors', 'Sponsor logos heading'],
-      ['cta', 'Closing call to action (navy box at the bottom)'],
+      sec('hero', 'Top banner: label, headline, intro, buttons and the team photo', 'eyebrow title body media buttons', { buttons: 'The first button is red, the others are outlined.' }),
+      sec('hero-note', 'Small line under the top banner buttons', 'body'),
+      sec('stats', 'Numbers on the team photo', 'body', {
+        body: 'One "- Label: value" per line. The value can be any text, or a count kept up to date automatically: {since} first competition year, {competitions} competitions entered, {podiums} podium finishes, {projects} projects.',
+      }),
+      sec('hero-caption', 'Caption on the team photo', 'body'),
+      sec('research', 'Research teams heading', `${heading} buttons`),
+      sec('projects', 'Featured projects heading', `${heading} buttons`),
+      sec('achievements', 'Achievements panel heading', `${heading} buttons`),
+      sec('news', 'News & coverage heading', `${heading} buttons`),
+      sec('sponsors', 'Sponsor logos heading', `${heading} buttons`),
+      sec('cta', 'Closing call to action (navy box at the bottom)', `${heading} buttons`),
     ],
     modules: [],
     alsoShows: [
@@ -223,77 +235,109 @@ export const sitePages: SitePage[] = [
   {
     slug: 'about', name: 'About', path: '/about', hint: 'Story, values and the organization.',
     sections: [
-      ['intro', 'Page title, the "About IRC" story and its photo'],
-      ['values', 'Core values (navy box)', list],
-      ['structure', 'Organizational structure tree', `${list} Indent 2 spaces to nest.`],
-      ['official', 'Official Department heading'],
-      ['hrd', 'HRD row', `First paragraph = description. ${list} (shown as tags)`],
-      ['mnb', 'Media and Branding row', `First paragraph = description. ${list} (shown as tags)`],
-      ['fund', 'Fundraising row', `First paragraph = description. ${list} (shown as tags)`],
-      ['technical', 'Technical Department heading'],
-      ['mechanical', 'Mechanical division (with photo)', `First paragraph = description. ${list} (shown as tags)`],
-      ['electrical', 'Electrical division (with photo)', `First paragraph = description. ${list} (shown as tags)`],
-      ['software', 'Software division (with photo)', `First paragraph = description. ${list} (shown as tags)`],
+      sec('intro', 'Page title, the "About IRC" story and its photo', 'eyebrow title body media buttons', pills),
+      sec('values', 'Core values (navy box)', heading, { body: list }),
+      sec('structure', 'Organizational structure tree', heading, { body: `${list} Indent 2 spaces to nest.` }),
+      sec('official', 'Official Department heading', heading),
+      sec('hrd', 'HRD row', 'title body', tags),
+      sec('mnb', 'Media and Branding row', 'title body', tags),
+      sec('fund', 'Fundraising row', 'title body', tags),
+      sec('technical', 'Technical Department heading', heading),
+      sec('mechanical', 'Mechanical division (with photo)', `${heading} media`, tags),
+      sec('electrical', 'Electrical division (with photo)', `${heading} media`, tags),
+      sec('software', 'Software division (with photo)', `${heading} media`, tags),
     ],
     modules: [],
   },
   {
     slug: 'research', name: 'Research', path: '/research', hint: 'Research teams, projects and competitions.',
     sections: [
-      ['intro', 'Page title and intro'],
-      ['agrisena', 'Agrisena group story (above its team cards)'],
-      ['agrinaya', 'Agrinaya group story (above its team cards)'],
-      ['coming-soon', '"Coming soon" box under the teams'],
-      ['projects', 'Projects heading'],
-      ['competitions', 'Competitions heading'],
+      sec('intro', 'Page title and intro', `${heading} buttons`, pills),
+      sec('agrisena', 'Agrisena group story (above its team cards)', heading),
+      sec('agrinaya', 'Agrinaya group story (above its team cards)', heading),
+      sec('team-label', 'Label above each team’s target competitions', 'title'),
+      sec('coming-soon', '"Coming soon" box under the teams', 'title body'),
+      sec('projects', 'Projects heading', heading),
+      sec('competitions', 'Competitions heading', heading),
+      sec('timeline', 'Participation timeline heading (also used on competition pages)', 'title body', { body: 'Shown for an entry without a result, e.g. Participant.' }),
     ],
     modules: ['research-teams', 'projects', 'competitions', 'entries'],
   },
   {
     slug: 'gallery-news', name: 'Gallery & News', path: '/gallery-news', hint: 'Photo gallery and press coverage.',
     sections: [
-      ['intro', 'Page title and intro'],
-      ['gallery', 'Gallery heading'],
-      ['news', 'News & coverage heading'],
+      sec('intro', 'Page title and intro', `${heading} buttons`, { buttons: `${pills.buttons} {photos} and {news} show the current counts.` }),
+      sec('gallery', 'Gallery heading', heading),
+      sec('news', 'News & coverage heading', heading),
+      sec('news-empty', 'Shown when there are no news links', 'body'),
     ],
     modules: ['gallery', 'news'],
   },
   {
     slug: 'teams', name: 'Teams', path: '/teams', hint: 'Committee, supervisors and advisors.',
     sections: [
-      ['intro', 'Page title and intro'],
-      ['committee', 'Committee heading'],
-      ['supervisor', 'Supervisors heading'],
-      ['advisor', 'Research advisor heading'],
-      ['pic', 'Persons in charge heading'],
+      sec('intro', 'Page title and intro (the navy panel lists the group headings below)', heading),
+      sec('committee', 'Committee heading', heading),
+      sec('supervisor', 'Supervisors heading', heading),
+      sec('advisor', 'Research advisor heading', heading),
+      sec('pic', 'Persons in charge heading', heading),
+      sec('highlights-label', 'Button that opens a person’s highlights', 'title'),
     ],
     modules: ['people'],
   },
   {
     slug: 'sponsors', name: 'Sponsors', path: '/sponsors', hint: 'Partner logos and why to sponsor.',
     sections: [
-      ['intro', 'Page title and intro'],
-      ['why', 'Why support IRC (navy box)'],
-      ['cta', 'Become a sponsor (bottom, with button)'],
+      sec('intro', 'Page title and intro', `${heading} buttons`, { buttons: `${pills.buttons} {sponsors} shows the number of sponsors.` }),
+      sec('why', 'Why support IRC (navy box)', heading),
+      sec('cta', 'Become a sponsor (bottom, with button)', `${heading} buttons`),
     ],
     modules: ['sponsors'],
   },
   {
     slug: 'support', name: 'Individual Support', path: '/support', hint: 'Tiers, the pledge form and supporters.',
     sections: [
-      ['support', 'Page title and intro'],
-      ['tier-1', 'Green tier card (heading = amount)', `${list} Each item is one benefit.`],
-      ['tier-2', 'Gold tier card (heading = amount)', `${list} Each item is one benefit.`],
-      ['tier-3', 'Platinum tier card (heading = amount)', `${list} Each item is one benefit.`],
-      ['pledge', 'Pledge text and the Google Form button'],
+      sec('support', 'Page title and intro', `${heading} buttons`, pills),
+      sec('tier-1', 'Green tier card (heading = amount)', heading, { body: `${list} Each item is one benefit.` }),
+      sec('tier-2', 'Gold tier card (heading = amount)', heading, { body: `${list} Each item is one benefit.` }),
+      sec('tier-3', 'Platinum tier card (heading = amount)', heading, { body: `${list} Each item is one benefit.` }),
+      sec('badges', 'Name badge preview at the bottom of each tier card', 'title body', { body: fixed('green tier name, gold tier name, platinum tier name') }),
+      sec('badge-sample', 'Sample name inside the badge preview', 'title'),
+      sec('pledge', 'Pledge text and the Google Form button', 'title body buttons'),
+      sec('thanks', '"Special thanks to" heading above the supporters', 'title'),
     ],
     modules: ['supporters'],
   },
   {
     slug: 'contact', name: 'Contact', path: '/contact', hint: 'Contact details and the message form.',
-    sections: [['intro', 'Page title and intro']],
+    sections: [
+      sec('intro', 'Page title and intro', heading),
+      sec('form', 'Heading and text next to the message form', 'title body'),
+      sec('map-link', 'Google Maps link text', 'title'),
+      sec('form-labels', 'Message form labels and messages', 'body', {
+        body: fixed('Name, Email, Organization, (optional), Topic, Message, Send button, "Sending…", thank-you heading, thank-you text, "Send another message", error text, "Please email us at"'),
+      }),
+      sec('form-topics', 'Topic choices in the form', 'body', { body: fixed('sponsorship, research collaboration, media, general') }),
+    ],
     modules: [],
     alsoShows: [{ module: 'settings', note: 'Email, WhatsApp, address and social links' }],
+  },
+  {
+    slug: 'site', name: 'Menu & footer', path: '/', hint: 'Top menu, footer, project/competition page labels and the 404 page.',
+    sections: [
+      sec('nav', 'Top menu', 'body', { body: 'One "- Label | link" per line. Indent 2 spaces to put a link in the dropdown of the line above.' }),
+      sec('nav-button', 'Red button at the right of the menu', 'buttons'),
+      sec('footer-explore', 'Footer: links column', 'title buttons'),
+      sec('footer-contact', 'Footer: contact column heading', 'title'),
+      sec('footer-follow', 'Footer: social icons heading', 'title'),
+      sec('footer-bottom', 'Footer: bottom line and the admin link', 'body buttons', { body: '{year} = this year, {org} = organization name (Settings).' }),
+      sec('project-page', 'Labels on every project page', 'body buttons', { body: fixed('back link, "Research team", "Year", "Related competitions", "Photos", "Project" (shown when a project has no team)') }),
+      sec('competition-page', 'Labels on every competition page', 'body', {
+        body: fixed('back link, "Achievements", "About the competition", "Our journey", "Participation", "Photos", "Organized by"'),
+      }),
+      sec('not-found', 'Page not found (404)', `${heading} buttons`),
+    ],
+    modules: [],
   },
 ]
 
@@ -307,30 +351,24 @@ export const homeOf = (module: string) => {
   return p ? `/admin/pages/${p.slug}#${module}` : '/admin'
 }
 
-export const sectionInfo = (page: string, key: string) => sitePages.find((p) => p.slug === page)?.sections.find((s) => s[0] === key)
+export const sectionInfo = (page: string, key: string) => sitePages.find((p) => p.slug === page)?.sections.find((s) => s.key === key)
 
-// Page sections that actually show a photo or a button on the site. Every other section is heading + text only,
-// so the edit form hides those fields. Keep in sync when a page starts rendering s.<key>.media or .cta_href.
-const sectionExtras: Record<string, ('media' | 'cta')[]> = {
-  'home/hero': ['media', 'cta'],
-  'home/cta': ['cta'],
-  'about/intro': ['media'],
-  'about/mechanical': ['media'],
-  'about/electrical': ['media'],
-  'about/software': ['media'],
-  'sponsors/cta': ['cta'],
-  'support/pledge': ['cta'],
-}
-export const sectionUses = (row: Row, what: 'media' | 'cta') => !!sectionExtras[`${row.page}/${row.key}`]?.includes(what)
+/** Whether a page section shows this field on the site (unknown sections show everything). */
+export const sectionUses = (row: Row, field: SectionField) => sectionInfo(String(row.page), String(row.key))?.fields.includes(field) ?? true
 
 /** Fields to show when editing this row. */
 export function fieldsFor(key: string, row: Row): Field[] {
   const fields = modules[key].fields
   if (key !== 'page-sections') return fields
-  const help = sectionInfo(String(row.page), String(row.key))?.[2]
+  const info = sectionInfo(String(row.page), String(row.key))
+  if (!info) return fields
+  const field = (f: Field) => (f.name === 'media_id' ? 'media' : f.name) as SectionField
   return fields
-    .filter((f) => (f.name === 'media_id' ? sectionUses(row, 'media') : f.name.startsWith('cta_') ? sectionUses(row, 'cta') : true))
-    .map((f) => (f.name === 'body' && help ? { ...f, help: `${help} ${md}` } : f))
+    .filter((f) => info.fields.includes(field(f)))
+    .map((f) => {
+      const help = info.help?.[field(f)]
+      return help ? { ...f, help: f.name === 'body' ? `${help} ${md}` : help } : f
+    })
 }
 
 // Columns that reference media, for "where is this photo used" and delete checks.

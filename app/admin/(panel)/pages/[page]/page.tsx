@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: PageProps<'/admin/pages/[page
   return { title: sitePages.find((p) => p.slug === page)?.name ?? 'Page' }
 }
 
-type Section = { id: string; key: string; title: string | null; body: string | null; page: string; media: { path: string; alt: string } | null }
+type Section = { id: string; key: string; title: string | null; body: string | null; buttons: string[] | null; page: string; media: { path: string; alt: string } | null }
 
 export default async function PageHub({ params, searchParams }: PageProps<'/admin/pages/[page]'>) {
   const { page: slug } = await params
@@ -22,15 +22,15 @@ export default async function PageHub({ params, searchParams }: PageProps<'/admi
   const { db } = await requireEditor()
 
   const [{ data }, lists, competitions] = await Promise.all([
-    db.from('page_sections').select('id,key,title,body,page,media:media!media_id(path,alt)').eq('page', slug),
+    db.from('page_sections').select('*,media:media!media_id(path,alt)').eq('page', slug),
     Promise.all(page.modules.map((k) => loadItems(db, k))),
     page.modules.includes('gallery') ? db.from('competitions').select('id, name').order('sort_order').then((r) => r.data ?? []) : [],
   ])
   const rows = (data ?? []) as unknown as Section[]
   // Site order first; sections the map does not know yet go last so nothing is hidden.
-  const known = page.sections.map(([key]) => key)
+  const known = page.sections.map((s) => s.key)
   const sections = [
-    ...page.sections.flatMap(([key, label]) => rows.filter((r) => r.key === key).map((r) => ({ ...r, label }))),
+    ...page.sections.flatMap(({ key, label }) => rows.filter((r) => r.key === key).map((r) => ({ ...r, label }))),
     ...rows.filter((r) => !known.includes(r.key)).map((r) => ({ ...r, label: r.key })),
   ]
 
@@ -64,8 +64,13 @@ export default async function PageHub({ params, searchParams }: PageProps<'/admi
                 <span className="grid size-7 shrink-0 place-items-center rounded-full bg-secondary font-mono text-xs text-white">{i + 1}</span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-xs font-medium text-navy-600">{s.label}</span>
-                  <span className="block truncate font-semibold text-navy-900">{s.title || <span className="font-normal text-navy-400">(no heading)</span>}</span>
-                  {s.body && <span className="block truncate text-sm text-navy-600">{s.body.replace(/\s+/g, ' ')}</span>}
+                  {s.title && <span className="block truncate font-semibold text-navy-900">{s.title}</span>}
+                  {(!!s.body || !!s.buttons?.length) && (
+                    <span className={`block truncate text-sm ${s.title ? 'text-navy-600' : 'font-medium text-navy-900'}`}>
+                      {s.body?.replace(/\s+/g, ' ') || s.buttons?.map((b) => b.split('|')[0].trim()).join(' · ')}
+                    </span>
+                  )}
+                  {!s.title && !s.body && !s.buttons?.length && <span className="block text-sm text-navy-400">(empty)</span>}
                 </span>
                 {sectionUses(s, 'media') && (
                   <span className="relative hidden size-12 shrink-0 overflow-hidden rounded-lg bg-surface sm:block">

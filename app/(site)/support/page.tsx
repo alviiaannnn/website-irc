@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { ButtonLink, Container, Markdown, PageHeader, StepPills } from '@/components/ui'
+import { Buttons, Container, Markdown, PageHeader, pillsFrom, StepPills } from '@/components/ui'
 import { getSections, getSupporters, type Tier } from '@/lib/data'
-import { listItems } from '@/lib/text'
+import { labels, listItems } from '@/lib/text'
 
 export const metadata: Metadata = {
   title: 'Individual Support',
@@ -24,20 +24,16 @@ const Badge = ({ tier, children }: { tier: Tier; children: ReactNode }) => (
 export default async function Support() {
   const [s, supporters] = await Promise.all([getSections('support'), getSupporters()])
   const tiers = ['tier-1', 'tier-2', 'tier-3'].flatMap((k) => s[k] ?? [])
+  // Tier names on the badges, editable in Admin → Individual Support → name badge preview.
+  const [green, gold, platinum] = labels(s.badges?.body, [badge.green.label, badge.gold.label, badge.platinum.label] as const)
+  const tierName: Record<Tier, string> = { green, gold, platinum }
   return (
     <>
       <PageHeader
-        eyebrow="Individual support"
+        eyebrow={s.support?.eyebrow}
         title={s.support?.title}
         body={s.support?.body}
-        aside={
-          <StepPills
-            items={[
-              ...tiers.map((t) => ({ label: `From ${t.title}`, href: '#tiers' })),
-              ...(s.pledge?.cta_href ? [{ label: s.pledge.cta_label ?? 'Support IRC', href: s.pledge.cta_href }] : []),
-            ]}
-          />
-        }
+        aside={<StepPills items={pillsFrom(s.support)} />}
       />
 
       <section id="tiers" className="py-20 md:py-28">
@@ -45,15 +41,15 @@ export default async function Support() {
           <div className="cards grid gap-6 md:grid-cols-3">
             {tiers.map((t) => (
               <article key={t.key} className="flex flex-col rounded-2xl border border-navy-200/70 bg-white p-6">
-                <p className="text-xs font-semibold tracking-[0.18em] text-primary-ink uppercase">Starting from</p>
+                {t.eyebrow && <p className="text-xs font-semibold tracking-[0.18em] text-primary-ink uppercase">{t.eyebrow}</p>}
                 <p className="mt-2 font-mono text-3xl tracking-tight text-navy-900">{t.title}</p>
                 <ul className="mt-6 divide-y divide-navy-200/70 border-t border-navy-200/70 text-sm text-navy-600">
                   {listItems(t.body).map((b) => <li key={b.text} className="py-3">{b.text}</li>)}
                 </ul>
                 {cardTier[t.key] && (
                   <div className="mt-auto pt-6">
-                    <p className="font-mono text-xs text-navy-600">Your name on our website · {badge[cardTier[t.key]].label}</p>
-                    <div className="mt-3"><Badge tier={cardTier[t.key]}>@yourname</Badge></div>
+                    <p className="font-mono text-xs text-navy-600">{[s.badges?.title, tierName[cardTier[t.key]]].filter(Boolean).join(' · ')}</p>
+                    <div className="mt-3"><Badge tier={cardTier[t.key]}>{s['badge-sample']?.title ?? '@yourname'}</Badge></div>
                   </div>
                 )}
               </article>
@@ -65,18 +61,18 @@ export default async function Support() {
               <h2 className="text-3xl font-semibold tracking-[-0.04em] text-navy-900">{s.pledge?.title}</h2>
               <Markdown text={s.pledge?.body} className="mt-3 leading-relaxed text-navy-600" />
             </div>
-            {/* Google Form link, editable in Admin → Page text → Individual Support · pledge. */}
-            {s.pledge?.cta_href && <div className="shrink-0"><ButtonLink href={s.pledge.cta_href}>{s.pledge.cta_label ?? 'Support IRC'}</ButtonLink></div>}
+            {/* Google Form link, editable in Admin → Individual Support → pledge. */}
+            <Buttons items={s.pledge?.buttons} className="shrink-0" />
           </div>
 
           {supporters.length > 0 && (
             <div id="thanks" className="mt-20 text-center">
-              <h2 className="text-3xl font-semibold tracking-[-0.04em] text-navy-900">Special thanks to</h2>
+              <h2 className="text-3xl font-semibold tracking-[-0.04em] text-navy-900">{s.thanks?.title}</h2>
               {(['platinum', 'gold', 'green'] as const).map((tier) => {
                 const list = supporters.filter((p) => p.tier === tier)
                 if (!list.length) return null
                 return (
-                  <ul key={tier} aria-label={`${badge[tier].label} supporters`} className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                  <ul key={tier} aria-label={`${tierName[tier]} supporters`} className="mt-8 flex flex-wrap items-center justify-center gap-3">
                     {list.map((p) => (
                       <li key={p.id}>
                         {p.instagram ? (

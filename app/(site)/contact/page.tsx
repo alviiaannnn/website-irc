@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { ContactForm } from '@/components/contact-form'
 import { icons } from '@/components/footer'
-import { Container, PageHeader, Rows } from '@/components/ui'
+import { Container, Markdown, PageHeader, Rows } from '@/components/ui'
 import { getSections, getSettings } from '@/lib/data'
 
 export const metadata: Metadata = {
@@ -24,7 +24,7 @@ export default async function Contact() {
   return (
     <>
       <PageHeader
-        eyebrow="Contact"
+        eyebrow={s.intro?.eyebrow}
         title={s.intro?.title}
         body={s.intro?.body}
         aside={
@@ -49,20 +49,20 @@ export default async function Contact() {
       <section className="py-20 md:py-28">
         <Container className="grid gap-12 lg:grid-cols-[1fr_1.6fr]">
           <div>
-            <h2 className="text-3xl font-semibold tracking-[-0.04em] text-navy-900">Send us a message</h2>
-            <p className="mt-3 text-navy-600">We read every message and usually reply within a few days.</p>
-            {settings.address && (
+            <h2 className="text-3xl font-semibold tracking-[-0.04em] text-navy-900">{s.form?.title}</h2>
+            <Markdown text={s.form?.body} className="mt-3 text-navy-600" />
+            {settings.address && s['map-link']?.title && (
               <a
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings.address)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-6 inline-block font-medium text-navy-900 underline underline-offset-4"
               >
-                Open the lab in Google Maps
+                {s['map-link'].title}
               </a>
             )}
           </div>
-          <ContactForm email={settings.email} />
+          <ContactForm email={settings.email} labels={s['form-labels']?.body ?? null} topics={s['form-topics']?.body ?? null} />
         </Container>
       </section>
     </>

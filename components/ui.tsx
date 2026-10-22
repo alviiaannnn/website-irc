@@ -2,7 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { mediaUrl } from '@/lib/media'
-import { isPodium, listItems, type ListNode } from '@/lib/text'
+import { fill, isPodium, listItems, parseLink, type ListNode } from '@/lib/text'
 import type { Competition, Entry, Media, News, Person, Project, Section, Sponsor, Team } from '@/lib/data'
 
 export function Container({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -89,6 +89,7 @@ export function ButtonLink({ href, children, variant = 'primary' }: { href: stri
 }
 
 export function Eyebrow({ children, dark }: { children: ReactNode; dark?: boolean }) {
+  if (!children) return null
   // Red text never sits on navy (2.5:1); dark sections use the light navy tint.
   return (
     <p className={`flex items-center gap-3 text-sm font-semibold tracking-[0.18em] uppercase ${dark ? 'text-navy-200' : 'text-primary-ink'}`}>
@@ -110,6 +111,26 @@ export function Tags({ items, dark, small }: { items: string[]; dark?: boolean; 
   if (!items.length) return null
   return <ul className={`flex flex-wrap ${small ? 'gap-1.5' : 'gap-2'}`}>{items.map((t) => <li key={t} className="max-w-full"><Tag dark={dark} small={small}>{t}</Tag></li>)}</ul>
 }
+
+/** A plain heading-only section, for headings that come from a label list. */
+export const heading = (title: string): Section => ({ key: title, eyebrow: null, title, body: null, buttons: [], media: null })
+
+/** A section's buttons ("Label | link" lines). The first is the main one, the rest are outlined. */
+export function Buttons({ items, dark, quiet, className = '' }: { items?: string[] | null; dark?: boolean; quiet?: boolean; className?: string }) {
+  const links = (items ?? []).map(parseLink).filter((l) => l.href)
+  if (!links.length) return null
+  return (
+    <div className={`flex flex-wrap gap-3 ${className}`}>
+      {links.map((l, i) => (
+        <ButtonLink key={l.label + l.href} href={l.href} variant={i === 0 && !quiet ? 'primary' : dark ? 'light' : 'outline'}>{l.label}</ButtonLink>
+      ))}
+    </div>
+  )
+}
+
+/** A section's buttons as navy-panel pills; {placeholders} are filled from vars. */
+export const pillsFrom = (section: Section | undefined, vars: Record<string, string | number> = {}) =>
+  (section?.buttons ?? []).map((b) => parseLink(fill(b, vars)))
 
 /** Numbered pills stepping to the right, like the irc-mobile level ladder. */
 export function StepPills({ items }: { items: { label: string; href?: string }[] }) {
@@ -144,11 +165,11 @@ export function Rows({ items, dark }: { items: { key: string; title: ReactNode; 
 
 const h1Cls = 'text-[2.75rem] leading-[1.05] font-semibold tracking-[-0.05em] text-balance text-navy-900 md:text-6xl'
 
-export function SectionHeading({ section, eyebrow, dark, as: H = 'h2' }: { section?: Section; eyebrow?: string; dark?: boolean; as?: 'h1' | 'h2' }) {
+export function SectionHeading({ section, dark, as: H = 'h2' }: { section?: Section; dark?: boolean; as?: 'h1' | 'h2' }) {
   if (!section?.title) return null
   return (
     <div className="max-w-2xl">
-      {eyebrow && <Eyebrow dark={dark}>{eyebrow}</Eyebrow>}
+      <Eyebrow dark={dark}>{section.eyebrow}</Eyebrow>
       <H className={`mt-4 text-3xl leading-[1.1] font-semibold tracking-[-0.04em] text-balance md:text-[2.75rem] ${dark ? 'text-white' : 'text-navy-900'}`}>{section.title}</H>
       <Markdown text={section.body} className={`mt-4 text-lg leading-relaxed ${dark ? 'text-navy-200' : 'text-navy-600'}`} />
     </div>
@@ -167,7 +188,7 @@ export function PageHeader({
   aside,
   media,
 }: {
-  eyebrow: string
+  eyebrow?: string | null
   title: ReactNode
   body?: string | null
   back?: { href: string; label: string }
@@ -308,7 +329,7 @@ export function ResultRows({ entries, dark }: { entries: Entry[]; dark?: boolean
   )
 }
 
-export function Timeline({ entries }: { entries: Entry[] }) {
+export function Timeline({ entries, participant = 'Participant' }: { entries: Entry[]; participant?: string }) {
   const years = [...new Set(entries.map((e) => e.year))].sort((a, b) => b - a)
   return (
     <ol className="border-t border-navy-200/70">
@@ -319,7 +340,7 @@ export function Timeline({ entries }: { entries: Entry[] }) {
             {entries.filter((e) => e.year === y).map((e) => (
               <li key={e.id}>
                 <Link href={`/research/competitions/${e.competition.slug}`} className="font-semibold tracking-tight text-navy-900 hover:underline">{e.event}</Link>
-                <p className="text-sm text-navy-600">{[e.category, e.result ?? 'Participant'].filter(Boolean).join(' · ')}</p>
+                <p className="text-sm text-navy-600">{[e.category, e.result ?? participant].filter(Boolean).join(' · ')}</p>
               </li>
             ))}
           </ul>
@@ -351,7 +372,7 @@ export function NewsList({ news }: { news: News[] }) {
   )
 }
 
-export function PersonCard({ person }: { person: Person }) {
+export function PersonCard({ person, highlights = 'Highlights' }: { person: Person; highlights?: string }) {
   return (
     <article className="reveal group flex flex-col overflow-hidden rounded-2xl border border-navy-200/70 bg-white shadow-sm shadow-navy-900/5 transition duration-300 hover:shadow-xl hover:shadow-navy-900/10">
       <div className="relative aspect-[5/6] overflow-hidden bg-surface">
@@ -366,7 +387,7 @@ export function PersonCard({ person }: { person: Person }) {
           // Highlights can be long; they stay folded until the visitor asks for them.
           <details className="group/more mt-auto pt-4">
             <summary className="flex cursor-pointer list-none items-center justify-between border-t border-navy-200/70 pt-3 text-sm font-semibold text-navy-900 [&::-webkit-details-marker]:hidden">
-              Highlights ({person.highlights.length})
+              {highlights} ({person.highlights.length})
               <span aria-hidden className="text-lg leading-none text-navy-400 transition group-open/more:rotate-45">+</span>
             </summary>
             <ul className="mt-3 space-y-2.5 text-sm leading-relaxed text-navy-600">
@@ -400,18 +421,18 @@ export function SponsorLogoGrid({ sponsors }: { sponsors: Sponsor[] }) {
   )
 }
 
-/** Section wrapper with a heading row and an optional "see all" link. */
-export function Block({ id, section, eyebrow, link, children, className = '', tone }: { id?: string; section?: Section; eyebrow?: string; link?: { href: string; label: string }; children: ReactNode; className?: string; tone?: 'surface' }) {
+/** Section wrapper with a heading row; the section's buttons show as "see all" links on the right. */
+export function Block({ id, section, children, className = '', tone }: { id?: string; section?: Section; children: ReactNode; className?: string; tone?: 'surface' }) {
   return (
     <section id={id} className={`py-20 md:py-28 ${tone ? 'bg-grid border-y border-navy-200/50 bg-surface' : ''} ${className}`}>
       <Container>
         <div className="reveal flex flex-wrap items-end justify-between gap-6">
-          <SectionHeading section={section} eyebrow={eyebrow} />
-          {link && (
-            <Link href={link.href} className="group inline-flex items-center gap-2 font-medium text-navy-600 hover:text-navy-900">
-              {link.label} <span aria-hidden className="transition motion-safe:group-hover:translate-x-1">→</span>
+          <SectionHeading section={section} />
+          {pillsFrom(section).filter((l) => l.href).map((l) => (
+            <Link key={l.label + l.href} href={l.href} className="group inline-flex items-center gap-2 font-medium text-navy-600 hover:text-navy-900">
+              {l.label} <span aria-hidden className="transition motion-safe:group-hover:translate-x-1">→</span>
             </Link>
-          )}
+          ))}
         </div>
         <div className="mt-12">{children}</div>
       </Container>

@@ -1,24 +1,29 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { labels } from '@/lib/text'
 
-const topics = [
-  { value: 'sponsorship', label: 'Sponsorship' },
-  { value: 'collaboration', label: 'Research collaboration' },
-  { value: 'media', label: 'Media/press' },
-  { value: 'general', label: 'General' },
-]
+// Built-in texts; Admin → Contact → "Message form labels" / "Topic choices" replace them line by line.
+const defaultLabels = [
+  'Name', 'Email', 'Organization', '(optional)', 'Topic', 'Message', 'Send message', 'Sending…', 'Thank you!',
+  'Your message has been sent. We will get back to you soon.', 'Send another message', 'Sorry, the message could not be sent.', 'Please email us at',
+] as const
+const topicValues = ['sponsorship', 'collaboration', 'media', 'general'] as const
+const defaultTopics = ['Sponsorship', 'Research collaboration', 'Media/press', 'General'] as const
 
 const field = 'mt-1.5 block w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-ink transition-colors focus:border-secondary'
 
-export function ContactForm({ email }: { email: string | null }) {
+export function ContactForm({ email, labels: labelText, topics: topicText }: { email: string | null; labels: string | null; topics: string | null }) {
+  const [nameL, emailL, orgL, optionalL, topicL, messageL, sendL, sendingL, thanksL, sentL, againL, errorL, emailUsL] = labels(labelText, defaultLabels)
+  const topicLabels = labels(topicText, defaultTopics)
+  const topics = topicValues.map((value, i) => ({ value, label: topicLabels[i] }))
   const [state, setState] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const topicRef = useRef<HTMLSelectElement>(null)
 
   // "Become a Sponsor" links arrive as /contact?topic=sponsorship.
   useEffect(() => {
     const t = new URLSearchParams(window.location.search).get('topic')
-    if (t && topicRef.current && topics.some((x) => x.value === t)) topicRef.current.value = t
+    if (t && topicRef.current && topicValues.some((v) => v === t)) topicRef.current.value = t
   }, [])
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
@@ -45,34 +50,34 @@ export function ContactForm({ email }: { email: string | null }) {
   if (state === 'success')
     return (
       <div role="status" className="rounded-2xl border border-navy-200/70 p-8">
-        <p className="text-2xl font-semibold tracking-tight text-navy-900">Thank you!</p>
-        <p className="mt-2 text-navy-600">Your message has been sent. We will get back to you soon.</p>
-        <button type="button" onClick={() => setState('idle')} className="mt-6 font-semibold text-secondary underline">Send another message</button>
+        <p className="text-2xl font-semibold tracking-tight text-navy-900">{thanksL}</p>
+        <p className="mt-2 text-navy-600">{sentL}</p>
+        <button type="button" onClick={() => setState('idle')} className="mt-6 font-semibold text-secondary underline">{againL}</button>
       </div>
     )
 
   return (
     <form onSubmit={submit} className="grid gap-5 sm:grid-cols-2">
       <label className="text-sm font-medium text-navy-800">
-        Name
+        {nameL}
         <input name="name" required minLength={2} autoComplete="name" className={field} />
       </label>
       <label className="text-sm font-medium text-navy-800">
-        Email
+        {emailL}
         <input name="email" type="email" required autoComplete="email" className={field} />
       </label>
       <label className="text-sm font-medium text-navy-800">
-        Organization <span className="font-normal text-navy-600">(optional)</span>
+        {orgL} <span className="font-normal text-navy-600">{optionalL}</span>
         <input name="organization" autoComplete="organization" className={field} />
       </label>
       <label className="text-sm font-medium text-navy-800">
-        Topic
+        {topicL}
         <select ref={topicRef} name="topic" defaultValue="general" className={field}>
           {topics.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
         </select>
       </label>
       <label className="text-sm font-medium text-navy-800 sm:col-span-2">
-        Message
+        {messageL}
         <textarea name="message" required minLength={10} rows={6} className={field} />
       </label>
       <input type="checkbox" name="botcheck" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
@@ -82,11 +87,11 @@ export function ContactForm({ email }: { email: string | null }) {
           disabled={state === 'sending'}
           className="inline-flex min-h-12 items-center rounded-xl bg-secondary px-6 font-semibold text-white transition-colors hover:bg-navy-900 disabled:opacity-60"
         >
-          {state === 'sending' ? 'Sending…' : 'Send message'}
+          {state === 'sending' ? sendingL : sendL}
         </button>
         {state === 'error' && (
           <p role="alert" className="text-primary-ink">
-            Sorry, the message could not be sent.{email && <> Please email us at <a href={`mailto:${email}`} className="font-semibold underline">{email}</a>.</>}
+            {errorL}{email && <> {emailUsL} <a href={`mailto:${email}`} className="font-semibold underline">{email}</a>.</>}
           </p>
         )}
       </div>
