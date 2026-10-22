@@ -28,7 +28,7 @@ export function Footer({ settings }: { settings: Settings }) {
     { href: settings.email && `mailto:${settings.email}`, label: 'Email', d: icons.mail },
   ].filter((i) => i.href)
   return (
-    <footer className="relative overflow-hidden bg-secondary text-white">
+    <footer className="bg-grid-dark relative overflow-hidden bg-linear-to-br from-secondary to-navy-900 text-white">
       <Ring className="-right-44 -bottom-64 w-[24rem] border-[44px] md:-right-56 md:-bottom-72 md:w-[30rem] md:border-[56px]" />
       <Container className="relative grid gap-10 py-16 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1.4fr_1fr]">
         <div>
@@ -68,7 +68,13 @@ export function Footer({ settings }: { settings: Settings }) {
         </div>
       </Container>
       <div className="relative border-t border-white/15">
-        <Container className="py-6 text-xs text-navy-200">© {new Date().getFullYear()} {settings.org_name}. All rights reserved.</Container>
+        <Container className="flex flex-wrap items-center justify-between gap-3 py-6 text-xs text-navy-200">
+          <span>© {new Date().getFullYear()} {settings.org_name}. All rights reserved.</span>
+          <Link href="/admin" className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 font-medium text-navy-200 hover:bg-white/10 hover:text-white">
+            <svg aria-hidden viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+            Admin login
+          </Link>
+        </Container>
       </div>
     </footer>
   )

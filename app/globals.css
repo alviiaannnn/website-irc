@@ -72,3 +72,39 @@ body {
   .cards > * { flex: 0 0 85%; scroll-snap-align: start; }
   .cards > :only-child { flex-basis: 100%; }
 }
+
+/* Blueprint grid behind sections and navy panels, so large areas are not flat colour. */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(49 81 107 / 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(49 81 107 / 0.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+/* Dark version draws on a layer of its own, so it sits on top of a gradient background. Needs a positioned element. */
+.bg-grid-dark { isolation: isolate; }
+.bg-grid-dark::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Content slides in as it scrolls into view (browsers without scroll timelines just show it). */
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: fade-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
+
+  /* Admin: top loading bar while a link is pending. */
+  .nav-progress { animation: nav-progress 2.5s cubic-bezier(0.1, 0.7, 0.2, 1) forwards; }
+  @keyframes nav-progress { from { transform: scaleX(0.05); } to { transform: scaleX(0.9); } }
+}

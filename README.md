@@ -3,7 +3,7 @@
 Portfolio site for IPB Robotic Club (IRC). Next.js 16 (App Router) + Supabase + Web3Forms + Tailwind 4. Spec: [docs/PRD.md](docs/PRD.md), content source: [docs/handbook_IRC.md](docs/handbook_IRC.md).
 
 - Public pages: `/`, `/about`, `/research` (+ `/research/projects/[slug]`, `/research/competitions/[slug]`), `/gallery-news`, `/teams`, `/sponsors`, `/contact`. All static; every admin save calls `revalidatePath('/', 'layout')`.
-- Admin: `/admin` — invite-only Supabase Auth. Roles in `profiles`: `editor` (all content) and `admin` (+ accounts).
+- Admin: `/admin` (also linked as "Admin login" in the site footer) — invite-only Supabase Auth. Roles in `profiles`: `editor` (all content) and `admin` (+ accounts). Content is organised by website page (`/admin/pages/[page]`); lists are reordered by drag and drop, and `/` or Ctrl+K searches everything.
 
 ## Setup
 
@@ -28,7 +28,7 @@ Free Supabase projects pause after a week without database activity. `vercel.jso
 | --- | --- |
 | `app/(site)/` | Public pages with Navbar/Footer layout |
 | `app/admin/` | Login, invite acceptance, generic CRUD, media library, accounts; `actions.ts` holds all Server Actions |
-| `lib/admin.ts` | Admin module config: one entry per table decides the fields and list columns |
+| `lib/admin.ts` | Admin config: one entry per table decides the fields and list columns; `sitePages` maps every public page to its text sections (in on-page order) and the lists edited there |
 | `lib/data.ts` | Public read queries (anon key, no cookies → static pages) |
 | `components/ui.tsx` | Shared server components (cards, timeline, markdown, placeholders) |
 | `proxy.ts` | Session refresh + redirect signed-out users away from `/admin` |

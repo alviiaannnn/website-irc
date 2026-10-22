@@ -155,7 +155,7 @@ export type Sponsor = { id: string; name: string; url: string | null; logo: Medi
 export const getSponsors = () =>
   q<Sponsor[]>(db.from('sponsors').select(`*, logo:media!logo_media_id(${M})`).order('sort_order'))
 
-export const isPodium = (result: string | null) => !!result && /^(1st|2nd|3rd)\b/i.test(result)
+export { isPodium } from './text'
 
 export type Tier = 'green' | 'gold' | 'platinum'
 export const tierFor = (amount: number): Tier => (amount >= 800000 ? 'platinum' : amount >= 400000 ? 'gold' : 'green')

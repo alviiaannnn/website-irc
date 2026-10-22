@@ -17,8 +17,10 @@ export async function proxy(request: NextRequest) {
       },
     },
   })
-  const { data } = await supabase.auth.getUser()
-  if (!data.user && !open.includes(request.nextUrl.pathname)) {
+  // getClaims verifies the token locally when the project uses asymmetric JWT keys (no auth round trip),
+  // and falls back to getUser otherwise.
+  const { data } = await supabase.auth.getClaims()
+  if (!data?.claims && !open.includes(request.nextUrl.pathname)) {
     return NextResponse.redirect(new URL('/admin/login', request.url))
   }
   return response

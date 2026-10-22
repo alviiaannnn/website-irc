@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { modules, type Field } from '@/lib/admin'
+import { homeOf, modules, pageNames, sectionInfo, sitePages, type Field } from '@/lib/admin'
 import { requireAdmin, requireEditor } from '@/lib/auth'
 import { serviceDb, sessionDb } from '@/lib/supabase'
 
@@ -67,6 +67,11 @@ export async function saveRow(key: string, id: string, _prev: ActionState, fd: F
     } else row[f.name] = value
   }
 
+  if (isNew && mod.sortable) {
+    // New items go to the end of the list; drag them elsewhere afterwards.
+    const { data: last } = await db.from(mod.table).select('sort_order').order('sort_order', { ascending: false }).limit(1).maybeSingle()
+    row.sort_order = (last?.sort_order ?? -1) + 1
+  }
   const res = isNew
     ? await db.from(mod.table).insert(row).select('id').single()
     : await db.from(mod.table).update(row).eq('id', id).select('id').single()
@@ -86,22 +91,65 @@ export async function saveRow(key: string, id: string, _prev: ActionState, fd: F
   return { ok: 'Saved. The public site shows the change on the next page load.' }
 }
 
+/** Drag-and-drop ordering: sort_order follows the given id order. */
+export async function reorder(key: string, ids: string[]): Promise<ActionState> {
+  const mod = modules[key]
+  if (!mod?.sortable) return { error: 'This list cannot be reordered.' }
+  const { db } = await requireEditor()
+  if (!ids.every((id) => uuid.test(id))) return { error: 'Unknown item.' }
+  const results = await Promise.all(ids.map((id, i) => db.from(mod.table).update({ sort_order: i + 1 }).eq('id', id)))
+  const failed = results.find((r) => r.error)
+  if (failed?.error) return { error: dbError(failed.error) }
+  revalidateAll()
+  return { ok: 'Order saved.' }
+}
+
 export async function deleteRow(key: string, id: string) {
   const mod = modules[key]
   const { db } = await requireEditor()
-  if (!mod?.create) back(`/admin/${key}`, { error: 'Items here cannot be deleted.' })
+  const list = `/admin/${key}`
+  if (!mod?.create) back(list, { error: 'Items here cannot be deleted.' })
   // RLS turns a forbidden delete into "0 rows" without an error, so check what was removed.
   const { data, error } = await db.from(mod.table).delete().eq('id', id).select('id')
-  if (error) back(`/admin/${key}`, { error: dbError(error) })
-  if (!data?.length) back(`/admin/${key}`, { error: 'Nothing was deleted: the item is gone or your account may not edit it.' })
+  if (error) back(list, { error: dbError(error) })
+  if (!data?.length) back(list, { error: 'Nothing was deleted: the item is gone or your account may not edit it.' })
   revalidateAll()
-  back(`/admin/${key}`, { ok: 'Deleted.' })
+  back(list, { ok: 'Deleted.' })
 }
 
 /** After uploads done from the browser (bulk gallery, media library). */
 export async function revalidateSite() {
   await requireEditor()
   revalidateAll()
+}
+
+// ---------- search ----------
+export type SearchEntry = { title: string; where: string; href: string; text?: string }
+
+/** Everything an editor might look for, with where it shows on the site. Loaded once when the search box is focused. */
+export async function searchIndex(): Promise<SearchEntry[]> {
+  const { db } = await requireEditor()
+  const out: SearchEntry[] = sitePages.map((p) => ({ title: `${p.name} page`, where: `Website page · ${p.path}`, href: `/admin/pages/${p.slug}` }))
+  out.push({ title: 'Settings', where: 'Contact details, social links, share image', href: '/admin/settings' }, { title: 'Photos', where: 'Photo library', href: '/admin/media' })
+  const { data: sections } = await db.from('page_sections').select('id,page,key,title,body')
+  for (const r of sections ?? [])
+    out.push({
+      title: r.title || r.key,
+      where: `${pageNames[r.page] ?? r.page} page · ${sectionInfo(r.page, r.key)?.[1] ?? r.key}`,
+      href: `/admin/page-sections/${r.id}`,
+      text: r.body?.slice(0, 400),
+    })
+  await Promise.all(
+    Object.entries(modules)
+      .filter(([k, m]) => k !== 'page-sections' && !m.singleton)
+      .map(async ([k, m]) => {
+        const { data } = await db.from(m.table).select(`id, ${m.label}`)
+        const page = sitePages.find((p) => homeOf(k).startsWith(`/admin/pages/${p.slug}#`))?.name
+        for (const r of (data ?? []) as unknown as Record<string, string>[])
+          out.push({ title: r[m.label] || 'Untitled', where: [m.title, page && `${page} page`].filter(Boolean).join(' · '), href: `/admin/${k}/${r.id}` })
+      }),
+  )
+  return out
 }
 
 // ---------- media ----------

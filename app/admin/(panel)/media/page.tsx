@@ -1,8 +1,7 @@
 import Image from 'next/image'
-import Link from 'next/link'
 import { deleteMedia, updateMediaAlt } from '../../actions'
-import { ConfirmButton, LibraryUpload, ReplaceMedia } from '@/components/admin'
-import { inputCls, mediaRefs, modules } from '@/lib/admin'
+import { AdminLink, ConfirmButton, Flash, LibraryUpload, ReplaceMedia, SubmitButton } from '@/components/admin'
+import { btnGhost, homeOf, inputCls, mediaRefs, modules } from '@/lib/admin'
 import { requireEditor } from '@/lib/auth'
 import { mediaUrl } from '@/lib/media'
 
@@ -38,14 +37,13 @@ export default async function MediaLibrary({ searchParams }: PageProps<'/admin/m
       <form className="flex gap-2">
         <input type="search" name="q" defaultValue={q ? String(q) : ''} placeholder="Search by description…" aria-label="Search photos" className={`${inputCls} mt-0 max-w-sm`} />
       </form>
-      {ok && <p role="status" className="rounded-xl border border-navy-200/70 bg-white px-4 py-3 text-sm font-medium text-navy-900">✓ {String(ok)}</p>}
-      {error && <p role="alert" className="rounded-xl border border-navy-200/70 bg-white px-4 py-3 text-sm font-medium text-primary-ink">{String(error)}</p>}
+      <Flash ok={ok} error={error} />
 
       <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {media?.map((m) => {
           const used = [...(usage.get(m.id) ?? [])]
           return (
-            <li key={m.id} className="overflow-hidden rounded-2xl border border-navy-200/70 bg-white">
+            <li key={m.id} className="overflow-hidden rounded-2xl border border-navy-200/70 bg-white shadow-xs">
               <a href={mediaUrl(m.path)} target="_blank" className="relative block aspect-[4/3] bg-surface" title="Open full size">
                 <Image src={mediaUrl(m.path)} alt={m.alt} fill sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover" />
               </a>
@@ -55,11 +53,11 @@ export default async function MediaLibrary({ searchParams }: PageProps<'/admin/m
                     Description
                     <input name="alt" required defaultValue={m.alt} className={inputCls} />
                   </label>
-                  <button className="min-h-10 rounded-xl border border-navy-200 px-3 text-sm font-medium text-navy-900 hover:border-navy-600">Save</button>
+                  <SubmitButton className={btnGhost}>Save</SubmitButton>
                 </form>
                 <p className="flex flex-wrap gap-1.5 text-xs">
                   {used.length ? (
-                    used.map((u) => <Link key={u} href={`/admin/${u}`} className="rounded-md bg-surface px-2 py-0.5 font-medium text-navy-600 hover:text-navy-900">{modules[u].title}</Link>)
+                    used.map((u) => <AdminLink key={u} href={homeOf(u)} className="rounded-md bg-surface px-2 py-0.5 font-medium text-navy-600 hover:text-navy-900">{modules[u].title}</AdminLink>)
                   ) : (
                     <span className="text-navy-600">Not used yet</span>
                   )}

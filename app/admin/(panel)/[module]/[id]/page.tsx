@@ -1,10 +1,10 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { deleteRow, saveRow } from '../../../actions'
-import { AdminForm, ConfirmButton, GalleryField, MediaField } from '@/components/admin'
-import { fieldsFor, inputCls, modules, pageNames, type Field } from '@/lib/admin'
+import { AdminForm, ConfirmButton, GalleryField, Icon, MediaField } from '@/components/admin'
+import { btnGhost, cardCls, fieldsFor, homeOf, inputCls, modules, pageNames, sectionInfo, sitePages, type Field } from '@/lib/admin'
 import { requireEditor } from '@/lib/auth'
 import type { Media } from '@/lib/data'
+import { Breadcrumbs } from '../../ui'
 
 type Row = Record<string, unknown>
 const M = 'id,path,alt,width,height'
@@ -12,6 +12,11 @@ const M = 'id,path,alt,width,height'
 function get(row: Row, name: string): unknown {
   const [col, k] = name.split('.')
   return k ? (row[col] as Row | null)?.[k] : row[col]
+}
+
+export async function generateMetadata({ params }: PageProps<'/admin/[module]/[id]'>) {
+  const { module: key, id } = await params
+  return { title: `${id === 'new' ? 'New' : 'Edit'} · ${modules[key]?.title ?? 'Admin'}` }
 }
 
 export default async function EditRow({ params, searchParams }: PageProps<'/admin/[module]/[id]'>) {
@@ -28,18 +33,20 @@ export default async function EditRow({ params, searchParams }: PageProps<'/admi
 
   const fields = fieldsFor(key, row)
   const needsMedia = fields.some((f) => f.type === 'media' || f.type === 'gallery')
-  const library: Media[] = needsMedia ? (await db.from('media').select(M).order('created_at', { ascending: false })).data ?? [] : []
-  const refs: Record<string, { id: string; label: string }[]> = {}
-  for (const f of mod.fields.filter((f) => f.ref)) {
-    const { data } = await db.from(f.ref!.table).select(`id, ${f.ref!.label}`).order(f.ref!.label)
-    refs[f.name] = ((data ?? []) as unknown as Row[]).map((r) => ({ id: String(r.id), label: String(r[f.ref!.label]) }))
-  }
-  const gallery: Media[] =
-    mod.fields.some((f) => f.type === 'gallery') && !isNew
-      ? ((await db.from('project_media').select(`sort_order, media(${M})`).eq('project_id', id).order('sort_order')).data ?? []).map(
-          (g) => g.media as unknown as Media,
-        )
-      : []
+  const refFields = fields.filter((f) => f.ref)
+  const [library, refLists, gallery] = await Promise.all([
+    needsMedia ? db.from('media').select(M).order('created_at', { ascending: false }).then((r) => (r.data ?? []) as Media[]) : ([] as Media[]),
+    Promise.all(
+      refFields.map(async (f) => {
+        const { data } = await db.from(f.ref!.table).select(`id, ${f.ref!.label}`).order(f.ref!.label)
+        return ((data ?? []) as unknown as Row[]).map((r) => ({ id: String(r.id), label: String(r[f.ref!.label]) }))
+      }),
+    ),
+    fields.some((f) => f.type === 'gallery') && !isNew
+      ? db.from('project_media').select(`sort_order, media(${M})`).eq('project_id', id).order('sort_order').then((r) => (r.data ?? []).map((g) => g.media as unknown as Media))
+      : ([] as Media[]),
+  ])
+  const refs = Object.fromEntries(refFields.map((f, i) => [f.name, refLists[i]]))
 
   const input = (f: Field) => {
     const v = get(row, f.name)
@@ -72,17 +79,54 @@ export default async function EditRow({ params, searchParams }: PageProps<'/admi
     }
   }
 
+  const isSection = key === 'page-sections'
+  const page = isSection ? sitePages.find((p) => p.slug === row.page) : sitePages.find((p) => homeOf(key).startsWith(`/admin/pages/${p.slug}#`))
+  const where = isSection ? sectionInfo(String(row.page), String(row.key))?.[1] : null
   const toggles = fields.filter((f) => f.type === 'bool')
-  const title = key === 'page-sections' ? `${pageNames[String(row.page)] ?? row.page} · ${row.key}` : isNew ? `New ${mod.title.toLowerCase()} item` : String(row[mod.label] ?? 'Untitled')
+  const title = isSection ? String(row.title || row.key) : mod.singleton ? mod.title : isNew ? `New ${mod.title.toLowerCase()} item` : String(row[mod.label] ?? 'Untitled')
+  const crumbs = [
+    { href: '/admin', label: 'Dashboard' },
+    ...(page ? [{ href: `/admin/pages/${page.slug}`, label: page.name }] : []),
+    ...(isSection ? [{ href: `/admin/pages/${row.page}#text`, label: 'Text on this page' }] : mod.singleton ? [] : [{ href: homeOf(key), label: mod.title }]),
+    { label: isNew ? 'New' : title },
+  ]
+
   return (
     <div className="max-w-3xl space-y-6">
-      <Link href={mod.singleton ? '/admin' : `/admin/${key}`} className="text-sm font-medium text-navy-600 hover:text-navy-900">← {mod.singleton ? 'Dashboard' : mod.title}</Link>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <h1 className="text-3xl font-semibold tracking-[-0.04em] text-navy-900 capitalize">{title}</h1>
-        {!isNew && <a href={mod.view(row)} target="_blank" className="text-sm font-medium text-navy-600 hover:text-navy-900">View on site ↗</a>}
-      </div>
-      <div className="rounded-2xl border border-navy-200/70 bg-white px-6 pt-6">
+      <Breadcrumbs items={crumbs} />
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          {isSection && <p className="text-sm font-medium text-primary-ink">{pageNames[String(row.page)] ?? String(row.page)} page</p>}
+          <h1 className="text-3xl font-semibold tracking-[-0.04em] text-balance text-navy-900">{title}</h1>
+        </div>
+        {!isNew && (
+          <a href={mod.view(row)} target="_blank" className={btnGhost}>
+            View on site <Icon name="external" className="size-4" />
+          </a>
+        )}
+      </header>
+      {where && (
+        <p className="flex items-start gap-3 rounded-xl border border-secondary/15 bg-secondary/5 px-4 py-3 text-sm text-navy-800">
+          <Icon name="pages" className="mt-0.5 size-4 text-secondary" />
+          <span><span className="font-semibold">Where it shows:</span> {where}</span>
+        </p>
+      )}
+      <div className={`${cardCls} px-6 pt-6`}>
         <AdminForm action={saveRow.bind(null, key, id)} initialOk={saved ? 'Saved.' : undefined}>
+          {toggles.length > 0 && (
+            <div className="space-y-3 rounded-xl bg-surface p-4">
+              {toggles.map((f) => (
+                <label key={f.name} className="flex cursor-pointer items-center justify-between gap-4 text-sm font-medium text-navy-900">
+                  {f.label}
+                  <span className="relative inline-flex shrink-0">
+                    <input type="checkbox" name={f.name} defaultChecked={isNew ? f.name === 'is_published' : !!get(row, f.name)} className="peer sr-only" />
+                    <span aria-hidden className="h-6 w-11 rounded-full bg-navy-200 transition peer-checked:bg-tier-green peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary" />
+                    <span aria-hidden className="absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
           {fields.filter((f) => f.type !== 'bool').map((f) =>
             f.type === 'media' ? (
               <MediaField key={f.name} name={f.name} label={f.label} required={f.required} library={library} initial={library.find((m) => m.id === get(row, f.name)) ?? null} />
@@ -90,26 +134,16 @@ export default async function EditRow({ params, searchParams }: PageProps<'/admi
               <GalleryField key={f.name} name={f.name} label={f.label} library={library} initial={gallery} />
             ) : (
               <div key={f.name}>
-                <label htmlFor={f.name} className="text-sm font-medium text-navy-800">{f.label}{f.required && ' *'}</label>
+                <label htmlFor={f.name} className="text-sm font-medium text-navy-800">{f.label}{f.required && <span className="text-primary-ink"> *</span>}</label>
                 {input(f)}
                 {f.help && <p id={`${f.name}-help`} className="mt-1.5 text-xs text-navy-600">{f.help}</p>}
               </div>
             ),
           )}
-          {toggles.length > 0 && (
-            <div className="space-y-3 rounded-xl bg-surface p-4">
-              {toggles.map((f) => (
-                <label key={f.name} className="flex items-center gap-3 text-sm font-medium text-navy-900">
-                  <input type="checkbox" name={f.name} defaultChecked={isNew ? f.name === 'is_published' : !!get(row, f.name)} className="size-5 accent-secondary" />
-                  {f.label}
-                </label>
-              ))}
-            </div>
-          )}
         </AdminForm>
       </div>
       {mod.create && !isNew && (
-        <form action={deleteRow.bind(null, key, id)} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-navy-200/70 bg-white px-6 py-4">
+        <form action={deleteRow.bind(null, key, id)} className={`${cardCls} flex flex-wrap items-center justify-between gap-3 px-6 py-4`}>
           <p className="text-sm text-navy-600">Remove this item from the website permanently.</p>
           <ConfirmButton message="Delete this item? This cannot be undone.">Delete</ConfirmButton>
         </form>

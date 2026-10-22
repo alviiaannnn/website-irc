@@ -11,7 +11,6 @@ import {
   ResearchTeamCard,
   ResultRows,
   Ring,
-  Rows,
   SectionHeading,
   SponsorLogoGrid,
   StepPills,
@@ -54,22 +53,25 @@ export default async function Home() {
             <p className="mt-14 text-xs text-navy-600">Competing at {competitions.map((c) => c.short_name ?? c.name).join(' · ')}</p>
           </div>
         </div>
-        <div className="relative overflow-hidden bg-secondary">
+        {/* Team photo under a navy wash, with the ring, the teams and the numbers on top. */}
+        <div className="relative min-h-[34rem] overflow-hidden bg-navy-900">
+          {hero?.media && <Img media={hero.media} fallback="IPB Robotic Club" sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover opacity-60" preload />}
+          <div aria-hidden className="absolute inset-0 bg-linear-to-t from-navy-900 via-navy-900/70 to-secondary/40" />
+          <div aria-hidden className="bg-grid-dark absolute inset-0" />
           <Ring className="-top-24 -right-24 w-[24rem] border-[44px] md:-top-32 md:-right-32 md:w-[34rem] md:border-[64px]" />
-          <div className="relative flex h-full flex-col justify-end gap-12 px-4 py-16 md:px-6 lg:max-w-[600px] lg:py-24 lg:pl-12">
+          <div className="relative flex h-full flex-col justify-end gap-10 px-4 py-16 md:px-6 lg:max-w-[600px] lg:py-24 lg:pl-12">
             <StepPills items={teams.map((t) => ({ label: t.name, href: `/research#${t.slug}` }))} />
-            <Rows dark items={stats.map((st) => ({ key: st.title, title: st.title, detail: <span className="font-mono text-base text-white">{st.value}</span> }))} />
+            <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/15 bg-white/15 backdrop-blur-sm">
+              {stats.map((st) => (
+                <div key={st.title} className="bg-navy-900/60 p-5">
+                  <dt className="text-xs font-medium tracking-wide text-navy-200 uppercase">{st.title}</dt>
+                  <dd className="mt-2 font-mono text-3xl font-semibold tracking-tight text-white md:text-4xl">{st.value}</dd>
+                </div>
+              ))}
+            </dl>
+            {hero?.media && <p className="text-xs text-navy-200">{hero.media.alt}</p>}
           </div>
         </div>
-      </section>
-
-      <section aria-label="Team photo" className="pt-20 md:pt-28">
-        <Container>
-          <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-surface md:aspect-[21/9]">
-            <Img media={hero?.media ?? null} fallback="IPB Robotic Club" sizes="(min-width: 1200px) 1152px, 100vw" />
-          </div>
-          {hero?.media && <p className="mt-3 text-sm text-navy-600">{hero.media.alt}</p>}
-        </Container>
       </section>
 
       <Block section={s.research} eyebrow="Research" link={{ href: '/research#teams', label: 'All research teams' }}>
@@ -78,13 +80,13 @@ export default async function Home() {
         </div>
       </Block>
 
-      <Block section={s.projects} eyebrow="Projects" link={{ href: '/research#projects', label: 'All projects' }} className="pt-0 md:pt-0">
+      <Block section={s.projects} eyebrow="Projects" link={{ href: '/research#projects', label: 'All projects' }} tone="surface">
         <div className="cards grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {featured.map((p) => <ProjectCard key={p.id} project={p} />)}
         </div>
       </Block>
 
-      <section className="pb-20 md:pb-28">
+      <section className="py-20 md:py-28">
         <Container>
           <NavyPanel>
             <SectionHeading section={s.achievements} eyebrow="Results" dark />
@@ -95,12 +97,12 @@ export default async function Home() {
       </section>
 
       {news.length > 0 && (
-        <Block section={s.news} eyebrow="Coverage" link={{ href: '/gallery-news#news', label: 'All coverage' }} className="pt-0 md:pt-0">
+        <Block section={s.news} eyebrow="Coverage" link={{ href: '/gallery-news#news', label: 'All coverage' }} tone="surface">
           <NewsList news={news.slice(0, 3)} />
         </Block>
       )}
 
-      <Block section={s.sponsors} eyebrow="Sponsors" link={{ href: '/sponsors', label: 'Become a sponsor' }} className="pt-0 md:pt-0">
+      <Block section={s.sponsors} eyebrow="Sponsors" link={{ href: '/sponsors', label: 'Become a sponsor' }}>
         <SponsorLogoGrid sponsors={sponsors} />
       </Block>
 

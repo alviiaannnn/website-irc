@@ -17,6 +17,8 @@ export function listItems(text: string | null | undefined): ListNode[] {
   return root
 }
 
+export const isPodium = (result: string | null) => !!result && /^(1st|2nd|3rd)\b/i.test(result)
+
 /** Body text without its lists (the lists are rendered separately, e.g. as pills). */
 export const leadText = (text: string | null | undefined) =>
   (text ?? '').split(/\r?\n\s*\n/).filter((b) => !/^\s*- /.test(b)).join('\n\n')

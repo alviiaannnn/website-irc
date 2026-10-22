@@ -31,7 +31,7 @@ export function GalleryGrid({ items, filter = true }: { items: Item[]; filter?: 
       <ul className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
         {shown.map((item, i) => (
           <li key={item.id}>
-            <button type="button" onClick={() => open(i)} className="group relative block aspect-square w-full overflow-hidden rounded-xl bg-surface">
+            <button type="button" onClick={() => open(i)} className="group relative block aspect-square w-full overflow-hidden rounded-xl bg-surface shadow-sm shadow-navy-900/5 transition duration-300 hover:shadow-lg">
               <Image
                 src={mediaUrl(item.media.path)}
                 alt={item.media.alt}
@@ -41,7 +41,7 @@ export function GalleryGrid({ items, filter = true }: { items: Item[]; filter?: 
               />
               {item.caption && (
                 <span className="absolute inset-x-0 bottom-0 bg-linear-to-t from-navy-900/90 to-transparent p-3 pt-10 text-left text-sm font-medium text-white">
-                  {item.caption}
+                  <span className="line-clamp-2">{item.caption}</span>
                 </span>
               )}
             </button>

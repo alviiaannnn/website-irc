@@ -2,7 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { mediaUrl } from '@/lib/media'
-import { listItems, type ListNode } from '@/lib/text'
+import { isPodium, listItems, type ListNode } from '@/lib/text'
 import type { Competition, Entry, Media, News, Person, Project, Section, Sponsor, Team } from '@/lib/data'
 
 export function Container({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -90,20 +90,25 @@ export function ButtonLink({ href, children, variant = 'primary' }: { href: stri
 
 export function Eyebrow({ children, dark }: { children: ReactNode; dark?: boolean }) {
   // Red text never sits on navy (2.5:1); dark sections use the light navy tint.
-  return <p className={`text-sm font-semibold tracking-[0.18em] uppercase ${dark ? 'text-navy-200' : 'text-primary-ink'}`}>{children}</p>
+  return (
+    <p className={`flex items-center gap-3 text-sm font-semibold tracking-[0.18em] uppercase ${dark ? 'text-navy-200' : 'text-primary-ink'}`}>
+      <span aria-hidden className={`h-0.5 w-8 rounded-full ${dark ? 'bg-primary' : 'bg-primary-ink'}`} />
+      {children}
+    </p>
+  )
 }
 
-export function Tag({ children, dark }: { children: ReactNode; dark?: boolean }) {
+export function Tag({ children, dark, small }: { children: ReactNode; dark?: boolean; small?: boolean }) {
   return (
-    <span className={`inline-block rounded-full border px-3 py-1 text-sm font-medium ${dark ? 'border-white/20 bg-white/10 text-white' : 'border-navy-200 bg-surface text-navy-800'}`}>
+    <span className={`inline-block max-w-full rounded-full border font-medium break-words ${small ? 'px-2.5 py-0.5 text-xs' : 'px-3 py-1 text-sm'} ${dark ? 'border-white/20 bg-white/10 text-white' : 'border-navy-200 bg-surface text-navy-800'}`}>
       {children}
     </span>
   )
 }
 
-export function Tags({ items, dark }: { items: string[]; dark?: boolean }) {
+export function Tags({ items, dark, small }: { items: string[]; dark?: boolean; small?: boolean }) {
   if (!items.length) return null
-  return <ul className="flex flex-wrap gap-2">{items.map((t) => <li key={t}><Tag dark={dark}>{t}</Tag></li>)}</ul>
+  return <ul className={`flex flex-wrap ${small ? 'gap-1.5' : 'gap-2'}`}>{items.map((t) => <li key={t} className="max-w-full"><Tag dark={dark} small={small}>{t}</Tag></li>)}</ul>
 }
 
 /** Numbered pills stepping to the right, like the irc-mobile level ladder. */
@@ -126,7 +131,7 @@ export function StepPills({ items }: { items: { label: string; href?: string }[]
 /** Divider rows: title left, detail right. */
 export function Rows({ items, dark }: { items: { key: string; title: ReactNode; detail?: ReactNode }[]; dark?: boolean }) {
   return (
-    <ul className={`divide-y border-y ${dark ? 'relative divide-white/15 border-white/15 bg-secondary' : 'divide-navy-200/70 border-navy-200/70'}`}>
+    <ul className={`divide-y border-y ${dark ? 'relative divide-white/15 border-white/15' : 'divide-navy-200/70 border-navy-200/70'}`}>
       {items.map((r) => (
         <li key={r.key} className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 py-4">
           <span className={`text-lg font-semibold tracking-tight ${dark ? 'text-white' : 'text-navy-900'}`}>{r.title}</span>
@@ -180,12 +185,14 @@ export function PageHeader({
         </div>
       </div>
       {media ? (
-        <div className="relative min-h-72 bg-surface">
+        <div className="relative min-h-72 overflow-hidden bg-surface">
           <Img media={media.value} fallback={media.fallback} sizes="(min-width: 1024px) 50vw, 100vw" preload />
+          <div aria-hidden className="absolute inset-0 bg-linear-to-t from-navy-900/40 to-transparent" />
         </div>
       ) : (
-        <div className="relative min-h-60 overflow-hidden bg-secondary">
+        <div className="bg-grid-dark relative min-h-60 overflow-hidden bg-linear-to-br from-secondary to-navy-900">
           <Ring className="-top-28 -right-28 w-[22rem] border-[40px] md:w-[30rem] md:border-[56px]" />
+          <Ring className="-bottom-24 left-[12%] hidden w-40 border-[18px] opacity-25 lg:block" />
           <div className="relative flex h-full items-end px-4 py-12 md:px-6 lg:max-w-[600px] lg:py-20 lg:pl-12">{aside}</div>
         </div>
       )}
@@ -196,14 +203,16 @@ export function PageHeader({
 /** Navy block with the ring, for achievements and calls to action. */
 export function NavyPanel({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`relative overflow-hidden rounded-2xl bg-secondary px-6 py-12 md:px-12 md:py-16 ${className}`}>
+    <div className={`bg-grid-dark reveal relative overflow-hidden rounded-3xl bg-linear-to-br from-secondary to-navy-900 px-6 py-12 shadow-2xl shadow-navy-900/20 md:px-12 md:py-16 ${className}`}>
       <Ring className="-top-56 -right-40 hidden w-[26rem] border-[48px] lg:block" />
       <div className="relative">{children}</div>
     </div>
   )
 }
 
-const card = 'group relative flex flex-col overflow-hidden rounded-2xl border border-navy-200/70 bg-white transition-colors duration-300 hover:border-navy-400'
+const card =
+  'reveal group relative flex flex-col overflow-hidden rounded-2xl border border-navy-200/70 bg-white shadow-sm shadow-navy-900/5 transition duration-300 hover:border-navy-200 hover:shadow-xl hover:shadow-navy-900/10 motion-safe:hover:-translate-y-1'
+const zoom = 'object-cover transition duration-500 motion-safe:group-hover:scale-[1.04]'
 const cardEyebrow = 'text-xs font-semibold tracking-[0.18em] text-primary-ink uppercase'
 const cardTitle = 'mt-2 text-xl font-semibold tracking-tight text-navy-900'
 const arrow = <span aria-hidden className="text-navy-400 transition-transform duration-200 motion-safe:group-hover:translate-x-1">→</span>
@@ -211,8 +220,8 @@ const arrow = <span aria-hidden className="text-navy-400 transition-transform du
 export function ResearchTeamCard({ team }: { team: Team }) {
   return (
     <article className={card}>
-      <div className="relative aspect-[4/3] bg-surface">
-        <Img media={team.cover} fallback={team.name} sizes="(min-width: 768px) 33vw, 100vw" />
+      <div className="relative aspect-[4/3] overflow-hidden bg-surface">
+        <Img media={team.cover} fallback={team.name} sizes="(min-width: 768px) 33vw, 100vw" className={zoom} />
       </div>
       <div className="flex flex-1 flex-col p-6">
         <p className={cardEyebrow}>{team.group_name}</p>
@@ -220,7 +229,7 @@ export function ResearchTeamCard({ team }: { team: Team }) {
           <Link href={`/research#${team.slug}`} className="after:absolute after:inset-0">{team.name}</Link>
           {arrow}
         </h3>
-        {team.tagline && <p className="mt-2 text-navy-600">{team.tagline}</p>}
+        {team.tagline && <p className="mt-2 line-clamp-2 text-navy-600">{team.tagline}</p>}
       </div>
     </article>
   )
@@ -230,7 +239,7 @@ export function ProjectCard({ project }: { project: Project }) {
   return (
     <article className={card}>
       <div className="relative aspect-[4/3] overflow-hidden bg-surface">
-        <Img media={project.cover} fallback={project.name} sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover transition duration-300 motion-safe:group-hover:scale-[1.03]" />
+        <Img media={project.cover} fallback={project.name} sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className={zoom} />
       </div>
       <div className="flex flex-1 flex-col p-6">
         {project.team && <p className={cardEyebrow}>{project.team.name}</p>}
@@ -238,7 +247,7 @@ export function ProjectCard({ project }: { project: Project }) {
           <Link href={`/research/projects/${project.slug}`} className="after:absolute after:inset-0">{project.name}</Link>
           {arrow}
         </h3>
-        {project.subtitle && <p className="mt-2 text-navy-600">{project.subtitle}</p>}
+        {project.subtitle && <p className="mt-2 line-clamp-2 text-navy-600">{project.subtitle}</p>}
       </div>
     </article>
   )
@@ -249,8 +258,8 @@ export function CompetitionCard({ competition, entries, cover }: { competition: 
   const best = entries.filter((e) => e.result)
   return (
     <article className={card}>
-      <div className="relative aspect-[16/9] bg-surface">
-        <Img media={cover} fallback={competition.short_name ?? competition.name} sizes="(min-width: 768px) 50vw, 100vw" />
+      <div className="relative aspect-[16/9] overflow-hidden bg-surface">
+        <Img media={cover} fallback={competition.short_name ?? competition.name} sizes="(min-width: 768px) 50vw, 100vw" className={zoom} />
       </div>
       <div className="flex flex-1 flex-col p-6">
         <p className={cardEyebrow}>{competition.short_name}</p>
@@ -260,10 +269,28 @@ export function CompetitionCard({ competition, entries, cover }: { competition: 
         </h3>
         {years.length > 0 && <p className="mt-2 font-mono text-sm text-navy-600">{years.join(' · ')}</p>}
         {best.length > 0 && (
-          <div className="mt-4"><Tags items={best.slice(0, 3).map((e) => `${e.result} · ${e.event}`)} /></div>
+          <ul className="mt-4 space-y-2 border-t border-navy-200/70 pt-4 text-sm">
+            {best.slice(0, 3).map((e) => (
+              <li key={e.id} className="flex items-center gap-2 text-navy-800">
+                <Trophy podium={isPodium(e.result)} />
+                <span className="min-w-0 truncate"><span className="font-semibold">{e.result}</span> · {e.event}</span>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </article>
+  )
+}
+
+/** Small trophy mark; filled red for podium finishes. */
+export function Trophy({ podium, dark }: { podium: boolean; dark?: boolean }) {
+  return (
+    <span aria-hidden className={`grid size-7 shrink-0 place-items-center rounded-full ${podium ? 'bg-primary-ink text-white' : dark ? 'bg-white/10 text-navy-200' : 'bg-surface text-navy-600'}`}>
+      <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3" />
+      </svg>
+    </span>
   )
 }
 
@@ -272,7 +299,11 @@ export function ResultRows({ entries, dark }: { entries: Entry[]; dark?: boolean
   return (
     <Rows
       dark={dark}
-      items={entries.map((e) => ({ key: e.id, title: e.result, detail: [e.category, e.event].filter(Boolean).join(' · ') }))}
+      items={entries.map((e) => ({
+        key: e.id,
+        title: <span className="inline-flex items-center gap-3"><Trophy podium={isPodium(e.result)} dark={dark} />{e.result}</span>,
+        detail: [e.category, e.event].filter(Boolean).join(' · '),
+      }))}
     />
   )
 }
@@ -300,18 +331,18 @@ export function Timeline({ entries }: { entries: Entry[] }) {
 
 export function NewsList({ news }: { news: News[] }) {
   return (
-    <ul className="border-t border-navy-200/70">
+    <ul className="space-y-3">
       {news.map((n) => (
-        <li key={n.id} className="border-b border-navy-200/70">
-          <a href={n.url} target="_blank" rel="noopener noreferrer" className="group grid gap-x-8 gap-y-1 py-5 md:grid-cols-[220px_1fr_auto] md:items-baseline">
-            <span className="font-mono text-sm text-navy-600">
+        <li key={n.id} className="reveal">
+          <a href={n.url} target="_blank" rel="noopener noreferrer" className="group grid gap-x-8 gap-y-1 rounded-2xl border border-navy-200/70 bg-white p-5 transition duration-300 hover:border-navy-200 hover:shadow-lg hover:shadow-navy-900/5 md:grid-cols-[200px_1fr_auto] md:items-center md:px-6">
+            <span className="font-mono text-xs text-navy-600 md:text-sm">
               {[n.outlet, n.published_on && new Date(n.published_on).toLocaleDateString('en-GB', { dateStyle: 'medium' })].filter(Boolean).join(' · ')}
             </span>
-            <span>
-              <span className="text-lg font-semibold tracking-tight text-navy-900 group-hover:underline">{n.title}</span>
-              {n.summary && <span className="mt-1 block text-sm text-navy-600">{n.summary}</span>}
+            <span className="min-w-0">
+              <span className="line-clamp-2 text-lg leading-snug font-semibold tracking-tight text-navy-900 group-hover:text-secondary">{n.title}</span>
+              {n.summary && <span className="mt-1 line-clamp-1 text-sm text-navy-600">{n.summary}</span>}
             </span>
-            <span aria-hidden className="hidden text-navy-400 md:block">↗</span>
+            <span aria-hidden className="hidden size-10 place-items-center rounded-full border border-navy-200 text-navy-600 transition group-hover:border-secondary group-hover:bg-secondary group-hover:text-white md:grid">↗</span>
             <span className="sr-only"> (opens in a new tab)</span>
           </a>
         </li>
@@ -322,19 +353,26 @@ export function NewsList({ news }: { news: News[] }) {
 
 export function PersonCard({ person }: { person: Person }) {
   return (
-    <article className="flex flex-col overflow-hidden rounded-2xl border border-navy-200/70 bg-white">
-      <div className="relative aspect-[5/6] bg-surface">
-        <Img media={person.photo} fallback={person.name} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" className="object-cover object-top" />
+    <article className="reveal group flex flex-col overflow-hidden rounded-2xl border border-navy-200/70 bg-white shadow-sm shadow-navy-900/5 transition duration-300 hover:shadow-xl hover:shadow-navy-900/10">
+      <div className="relative aspect-[5/6] overflow-hidden bg-surface">
+        <Img media={person.photo} fallback={person.name} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" className="object-cover object-top transition duration-500 motion-safe:group-hover:scale-[1.03]" />
       </div>
       <div className="flex flex-1 flex-col p-5">
-        {person.role_title && <p className={cardEyebrow}>{person.role_title}</p>}
-        <h3 className="mt-2 text-lg font-semibold tracking-tight text-navy-900">{person.name}</h3>
+        {person.role_title && <p className="line-clamp-2 text-sm font-semibold text-primary-ink">{person.role_title}</p>}
+        <h3 className="mt-1 text-lg leading-snug font-semibold tracking-tight text-balance text-navy-900">{person.name}</h3>
         {person.program && <p className="text-sm text-navy-600">{person.program}</p>}
-        {person.tags.length > 0 && <div className="mt-4"><Tags items={person.tags} /></div>}
+        {person.tags.length > 0 && <div className="mt-4"><Tags items={person.tags} small /></div>}
         {person.highlights.length > 0 && (
-          <ul className="mt-4 divide-y divide-navy-200/70 border-t border-navy-200/70 text-sm text-navy-600">
-            {person.highlights.map((h) => <li key={h} className="py-2.5">{h}</li>)}
-          </ul>
+          // Highlights can be long; they stay folded until the visitor asks for them.
+          <details className="group/more mt-auto pt-4">
+            <summary className="flex cursor-pointer list-none items-center justify-between border-t border-navy-200/70 pt-3 text-sm font-semibold text-navy-900 [&::-webkit-details-marker]:hidden">
+              Highlights ({person.highlights.length})
+              <span aria-hidden className="text-lg leading-none text-navy-400 transition group-open/more:rotate-45">+</span>
+            </summary>
+            <ul className="mt-3 space-y-2.5 text-sm leading-relaxed text-navy-600">
+              {person.highlights.map((h) => <li key={h} className="border-l-2 border-primary/60 pl-3">{h}</li>)}
+            </ul>
+          </details>
         )}
       </div>
     </article>
@@ -343,7 +381,7 @@ export function PersonCard({ person }: { person: Person }) {
 
 export function SponsorLogoGrid({ sponsors }: { sponsors: Sponsor[] }) {
   return (
-    <ul className="grid grid-cols-2 border-t border-l border-navy-200/70 sm:grid-cols-3 lg:grid-cols-5">
+    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
       {sponsors.map((s) => {
         const inner = s.logo ? (
           <div className="relative h-14 w-full">
@@ -353,7 +391,7 @@ export function SponsorLogoGrid({ sponsors }: { sponsors: Sponsor[] }) {
           <span className="text-center text-sm font-semibold tracking-tight text-navy-800">{s.name}</span>
         )
         return (
-          <li key={s.id} className="grid min-h-32 place-items-center border-r border-b border-navy-200/70 p-6" title={s.name}>
+          <li key={s.id} className="reveal grid min-h-32 place-items-center rounded-2xl border border-navy-200/70 bg-white p-6 shadow-sm shadow-navy-900/5 transition duration-300 hover:shadow-lg hover:shadow-navy-900/10 motion-safe:hover:-translate-y-0.5" title={s.name}>
             {s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" className="grid w-full place-items-center">{inner}</a> : inner}
           </li>
         )
@@ -363,13 +401,17 @@ export function SponsorLogoGrid({ sponsors }: { sponsors: Sponsor[] }) {
 }
 
 /** Section wrapper with a heading row and an optional "see all" link. */
-export function Block({ id, section, eyebrow, link, children, className = '' }: { id?: string; section?: Section; eyebrow?: string; link?: { href: string; label: string }; children: ReactNode; className?: string }) {
+export function Block({ id, section, eyebrow, link, children, className = '', tone }: { id?: string; section?: Section; eyebrow?: string; link?: { href: string; label: string }; children: ReactNode; className?: string; tone?: 'surface' }) {
   return (
-    <section id={id} className={`py-20 md:py-28 ${className}`}>
+    <section id={id} className={`py-20 md:py-28 ${tone ? 'bg-grid border-y border-navy-200/50 bg-surface' : ''} ${className}`}>
       <Container>
-        <div className="flex flex-wrap items-end justify-between gap-6">
+        <div className="reveal flex flex-wrap items-end justify-between gap-6">
           <SectionHeading section={section} eyebrow={eyebrow} />
-          {link && <Link href={link.href} className="font-medium text-navy-600 hover:text-navy-900">{link.label} →</Link>}
+          {link && (
+            <Link href={link.href} className="group inline-flex items-center gap-2 font-medium text-navy-600 hover:text-navy-900">
+              {link.label} <span aria-hidden className="transition motion-safe:group-hover:translate-x-1">→</span>
+            </Link>
+          )}
         </div>
         <div className="mt-12">{children}</div>
       </Container>

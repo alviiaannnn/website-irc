@@ -1,9 +1,10 @@
 // Admin modules: one generic list/edit screen per content table, driven by this config.
 
 // Shared admin class names. Kept here, not in the 'use client' file: server pages import them as strings.
-export const inputCls = 'mt-1.5 block w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm font-normal text-ink focus:border-secondary'
-export const btnCls = 'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-secondary px-4 text-sm font-semibold text-white hover:bg-navy-900 disabled:opacity-50'
-export const btnGhost = 'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-navy-200 bg-white px-4 text-sm font-medium text-navy-900 hover:border-navy-600'
+export const inputCls = 'mt-1.5 block w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm font-normal text-ink shadow-xs transition focus:border-secondary focus:ring-4 focus:ring-secondary/10 focus:outline-none'
+export const btnCls = 'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-secondary px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-navy-900 active:scale-[0.98] disabled:opacity-50'
+export const btnGhost = 'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-navy-200 bg-white px-4 text-sm font-medium text-navy-900 transition hover:border-navy-400 hover:bg-surface active:scale-[0.98]'
+export const cardCls = 'rounded-2xl border border-navy-200/70 bg-white shadow-xs'
 
 export type FieldType =
   | 'text' | 'textarea' | 'url' | 'email' | 'slug' | 'date' | 'number' | 'bool'
@@ -32,12 +33,15 @@ export type Module = {
   view: (row: Row) => string // public page that shows this row
   create?: boolean
   singleton?: boolean
+  sortable?: boolean // has sort_order: lists get drag-and-drop ordering
+  group?: string // column the list is split by; items are ordered within their group
 }
 
 const md = 'Blank line = new paragraph. Start a line with "- " for a list. **bold**, [text](url).'
-const order: Field = { name: 'sort_order', label: 'Order', type: 'number', help: 'Lower numbers show first.' }
 const published: Field = { name: 'is_published', label: 'Show on the website', type: 'bool' }
 
+// Columns that exist but no public page shows (team/competition logos, news thumbnails, photo dates)
+// are left out of the forms on purpose: editing them changed nothing on the site.
 export const modules: Record<string, Module> = {
   'page-sections': {
     table: 'page_sections', title: 'Page text', hint: 'Headings, paragraphs, buttons and photos on every public page.',
@@ -52,22 +56,20 @@ export const modules: Record<string, Module> = {
   },
   'research-teams': {
     table: 'research_teams', title: 'Research teams', hint: 'Agrisena and Agrinaya teams on Home and Research.',
-    label: 'name', meta: ['group_name', 'tagline'], order: ['sort_order'], create: true, view: (r) => `/research#${r.slug}`,
+    label: 'name', meta: ['group_name', 'tagline'], order: ['sort_order'], create: true, sortable: true, view: (r) => `/research#${r.slug}`,
     fields: [
       { name: 'name', label: 'Name', type: 'text', required: true },
       { name: 'slug', label: 'URL name', type: 'slug', required: true, help: 'Lowercase letters, numbers and dashes.' },
-      { name: 'group_name', label: 'Group', type: 'text', required: true, help: 'Agrisena or Agrinaya. The group story lives in Page text → research.' },
+      { name: 'group_name', label: 'Group', type: 'text', required: true, help: 'Agrisena or Agrinaya. The group story is in Research → Text on this page.' },
       { name: 'tagline', label: 'Tagline', type: 'text' },
       { name: 'description', label: 'Description', type: 'textarea', help: md },
       { name: 'target_competitions', label: 'Target competitions', type: 'lines', help: 'One per line.' },
       { name: 'cover_media_id', label: 'Cover photo', type: 'media' },
-      { name: 'logo_media_id', label: 'Logo', type: 'media' },
-      order,
     ],
   },
   projects: {
     table: 'projects', title: 'Projects', hint: 'Robotics projects. Featured ones appear on Home.',
-    label: 'name', meta: ['team_id', 'year'], order: ['sort_order'], create: true, view: (r) => `/research/projects/${r.slug}`,
+    label: 'name', meta: ['team_id', 'year'], order: ['sort_order'], create: true, sortable: true, view: (r) => `/research/projects/${r.slug}`,
     fields: [
       { name: 'name', label: 'Name', type: 'text', required: true },
       { name: 'slug', label: 'URL name', type: 'slug', required: true, help: 'Lowercase letters, numbers and dashes. Used in the page address.' },
@@ -79,12 +81,11 @@ export const modules: Record<string, Module> = {
       { name: 'gallery', label: 'Photo gallery', type: 'gallery' },
       { name: 'is_featured', label: 'Feature on the home page', type: 'bool' },
       published,
-      order,
     ],
   },
   competitions: {
     table: 'competitions', title: 'Competitions', hint: 'One page per competition with its story.',
-    label: 'name', meta: ['short_name', 'organizer'], order: ['sort_order'], create: true, view: (r) => `/research/competitions/${r.slug}`,
+    label: 'name', meta: ['short_name', 'organizer'], order: ['sort_order'], create: true, sortable: true, view: (r) => `/research/competitions/${r.slug}`,
     fields: [
       { name: 'name', label: 'Name', type: 'text', required: true },
       { name: 'slug', label: 'URL name', type: 'slug', required: true, help: 'Lowercase letters, numbers and dashes.' },
@@ -92,13 +93,11 @@ export const modules: Record<string, Module> = {
       { name: 'organizer', label: 'Organizer', type: 'text' },
       { name: 'description', label: 'About the competition', type: 'textarea', help: md },
       { name: 'journey', label: 'Our journey', type: 'textarea', help: md },
-      { name: 'logo_media_id', label: 'Logo', type: 'media' },
-      order,
     ],
   },
   entries: {
     table: 'competition_entries', title: 'Results', hint: 'Yearly participation and results for the timeline and achievements.',
-    label: 'event', meta: ['competition_id', 'category', 'result'], order: ['-year', 'sort_order'], create: true, view: () => '/research#competitions',
+    label: 'event', meta: ['competition_id', 'category', 'result'], order: ['-year', 'sort_order'], create: true, sortable: true, group: 'year', view: () => '/research#competitions',
     fields: [
       { name: 'competition_id', label: 'Competition', type: 'ref', required: true, ref: { table: 'competitions', label: 'name' } },
       { name: 'event', label: 'Event', type: 'text', required: true, help: 'e.g. KRTI 2026' },
@@ -106,24 +105,21 @@ export const modules: Record<string, Module> = {
       { name: 'category', label: 'Category', type: 'text' },
       { name: 'result', label: 'Result', type: 'text', help: 'Leave empty for participation only. 1st/2nd/3rd count as podium finishes.' },
       published,
-      order,
     ],
   },
   gallery: {
     table: 'gallery_items', title: 'Gallery', hint: 'Photos on Gallery & News and on competition pages.',
-    label: 'caption', meta: ['album', 'competition_id'], order: ['sort_order'], create: true, view: () => '/gallery-news',
+    label: 'caption', meta: ['album', 'competition_id'], order: ['sort_order'], create: true, sortable: true, view: () => '/gallery-news',
     fields: [
       { name: 'media_id', label: 'Photo', type: 'media', required: true },
       { name: 'caption', label: 'Caption', type: 'text' },
       { name: 'album', label: 'Album', type: 'select', required: true, options: ['competitions', 'workshops', 'activities'] },
       { name: 'competition_id', label: 'Competition', type: 'ref', ref: { table: 'competitions', label: 'name' }, help: 'Also shows the photo on that competition page.' },
-      { name: 'taken_on', label: 'Date taken', type: 'date' },
       published,
-      order,
     ],
   },
   news: {
-    table: 'news_links', title: 'News & coverage', hint: 'Links to articles about IRC.',
+    table: 'news_links', title: 'News & coverage', hint: 'Links to articles about IRC. Newest date shows first.',
     label: 'title', meta: ['outlet', 'published_on'], order: ['-published_on'], create: true, view: () => '/gallery-news#news',
     fields: [
       { name: 'title', label: 'Title', type: 'text', required: true },
@@ -131,13 +127,12 @@ export const modules: Record<string, Module> = {
       { name: 'outlet', label: 'Outlet', type: 'text' },
       { name: 'published_on', label: 'Date', type: 'date' },
       { name: 'summary', label: 'Summary', type: 'textarea' },
-      { name: 'thumbnail_media_id', label: 'Thumbnail', type: 'media' },
       published,
     ],
   },
   people: {
     table: 'people', title: 'People', hint: 'Committee, supervisors, advisor and persons in charge.',
-    label: 'name', meta: ['group', 'role_title'], order: ['group', 'sort_order'], create: true, view: () => '/teams',
+    label: 'name', meta: ['role_title', 'program'], order: ['group', 'sort_order'], create: true, sortable: true, group: 'group', view: () => '/teams',
     fields: [
       { name: 'name', label: 'Name', type: 'text', required: true },
       { name: 'photo_media_id', label: 'Photo', type: 'media' },
@@ -145,33 +140,30 @@ export const modules: Record<string, Module> = {
       { name: 'role_title', label: 'Role', type: 'text' },
       { name: 'program', label: 'Study program', type: 'text' },
       { name: 'tags', label: 'Skill tags', type: 'tags', help: 'Separate with commas.' },
-      { name: 'highlights', label: 'Highlights', type: 'lines', help: 'One per line.' },
+      { name: 'highlights', label: 'Highlights', type: 'lines', help: 'One per line. Visitors open them with "Show highlights" on the card.' },
       published,
-      order,
     ],
   },
   sponsors: {
     table: 'sponsors', title: 'Sponsors', hint: 'Logos on Home and Sponsors.',
-    label: 'name', meta: ['url'], order: ['sort_order'], create: true, view: () => '/sponsors',
+    label: 'name', meta: ['url'], order: ['sort_order'], create: true, sortable: true, view: () => '/sponsors',
     fields: [
       { name: 'name', label: 'Name', type: 'text', required: true },
       { name: 'logo_media_id', label: 'Logo', type: 'media' },
       { name: 'url', label: 'Website', type: 'url' },
       published,
-      order,
     ],
   },
   supporters: {
     table: 'supporters', title: 'Supporters', hint: 'Individual supporters from the Google Form. Add them once the payment arrives.',
-    label: 'name', meta: ['instagram', 'amount'], order: ['sort_order', '-created_at'], create: true, view: () => '/support',
+    label: 'name', meta: ['instagram', 'amount'], order: ['sort_order', '-created_at'], create: true, sortable: true, view: () => '/support',
     fields: [
       { name: 'name', label: 'Name', type: 'text', required: true },
       { name: 'instagram', label: 'Instagram username', type: 'text', help: 'Without @. Shown on the website and used for the Instagram thank-you tag.' },
       { name: 'amount', label: 'Amount (IDR)', type: 'number', required: true, help: 'Sets the name badge: 100.000+ green (M), 400.000+ gold (L), 800.000+ platinum (XL).' },
       { name: 'contact', label: 'Email or WhatsApp', type: 'text', help: 'Optional. Private, never shown on the website.' },
-      { name: 'message', label: 'Message', type: 'textarea' },
+      { name: 'message', label: 'Message', type: 'textarea', help: 'Private note for the team, never shown on the website.' },
       { name: 'is_published', label: 'Payment received: show in "Special thanks to" on the website', type: 'bool' },
-      order,
     ],
   },
   settings: {
@@ -179,7 +171,7 @@ export const modules: Record<string, Module> = {
     label: 'org_name', order: [], singleton: true, view: () => '/contact',
     fields: [
       { name: 'org_name', label: 'Organization name', type: 'text', required: true },
-      { name: 'tagline', label: 'Tagline', type: 'text' },
+      { name: 'tagline', label: 'Tagline', type: 'text', help: 'Shown on the link-preview image.' },
       { name: 'description', label: 'Footer description', type: 'textarea' },
       { name: 'email', label: 'Email', type: 'email' },
       { name: 'phone', label: 'Phone (WhatsApp)', type: 'text', help: 'Shown only on the Contact page.' },
@@ -190,6 +182,132 @@ export const modules: Record<string, Module> = {
     ],
   },
 }
+
+// ---------- the website, page by page ----------
+// Sections are listed in the order they appear on the page, so the admin reads top to bottom like the site.
+// [key, where it shows, extra help for the Text field]
+type SectionInfo = [key: string, label: string, help?: string]
+const list = 'Each line starting with "- " becomes one item.'
+
+export type SitePage = {
+  slug: string
+  name: string
+  path: string
+  hint: string
+  sections: SectionInfo[]
+  modules: string[] // content lists edited on this page
+  alsoShows?: { module: string; note: string }[] // content shown here but edited on another page
+}
+
+export const sitePages: SitePage[] = [
+  {
+    slug: 'home', name: 'Home', path: '/', hint: 'The first page visitors see.',
+    sections: [
+      ['hero', 'Top banner: headline, intro, second button and the big team photo'],
+      ['research', 'Research teams heading'],
+      ['projects', 'Featured projects heading'],
+      ['achievements', 'Achievements panel heading'],
+      ['news', 'News & coverage heading'],
+      ['sponsors', 'Sponsor logos heading'],
+      ['cta', 'Closing call to action (navy box at the bottom)'],
+    ],
+    modules: [],
+    alsoShows: [
+      { module: 'research-teams', note: 'Research team cards' },
+      { module: 'projects', note: 'Up to 3 projects ticked "Feature on the home page"' },
+      { module: 'entries', note: 'Best results in the Achievements panel' },
+      { module: 'news', note: 'The 3 newest news links' },
+      { module: 'sponsors', note: 'Sponsor logos' },
+    ],
+  },
+  {
+    slug: 'about', name: 'About', path: '/about', hint: 'Story, values and the organization.',
+    sections: [
+      ['intro', 'Page title, the "About IRC" story and its photo'],
+      ['values', 'Core values (navy box)', list],
+      ['structure', 'Organizational structure tree', `${list} Indent 2 spaces to nest.`],
+      ['official', 'Official Department heading'],
+      ['hrd', 'HRD row', `First paragraph = description. ${list} (shown as tags)`],
+      ['mnb', 'Media and Branding row', `First paragraph = description. ${list} (shown as tags)`],
+      ['fund', 'Fundraising row', `First paragraph = description. ${list} (shown as tags)`],
+      ['technical', 'Technical Department heading'],
+      ['mechanical', 'Mechanical division (with photo)', `First paragraph = description. ${list} (shown as tags)`],
+      ['electrical', 'Electrical division (with photo)', `First paragraph = description. ${list} (shown as tags)`],
+      ['software', 'Software division (with photo)', `First paragraph = description. ${list} (shown as tags)`],
+    ],
+    modules: [],
+  },
+  {
+    slug: 'research', name: 'Research', path: '/research', hint: 'Research teams, projects and competitions.',
+    sections: [
+      ['intro', 'Page title and intro'],
+      ['agrisena', 'Agrisena group story (above its team cards)'],
+      ['agrinaya', 'Agrinaya group story (above its team cards)'],
+      ['coming-soon', '"Coming soon" box under the teams'],
+      ['projects', 'Projects heading'],
+      ['competitions', 'Competitions heading'],
+    ],
+    modules: ['research-teams', 'projects', 'competitions', 'entries'],
+  },
+  {
+    slug: 'gallery-news', name: 'Gallery & News', path: '/gallery-news', hint: 'Photo gallery and press coverage.',
+    sections: [
+      ['intro', 'Page title and intro'],
+      ['gallery', 'Gallery heading'],
+      ['news', 'News & coverage heading'],
+    ],
+    modules: ['gallery', 'news'],
+  },
+  {
+    slug: 'teams', name: 'Teams', path: '/teams', hint: 'Committee, supervisors and advisors.',
+    sections: [
+      ['intro', 'Page title and intro'],
+      ['committee', 'Committee heading'],
+      ['supervisor', 'Supervisors heading'],
+      ['advisor', 'Research advisor heading'],
+      ['pic', 'Persons in charge heading'],
+    ],
+    modules: ['people'],
+  },
+  {
+    slug: 'sponsors', name: 'Sponsors', path: '/sponsors', hint: 'Partner logos and why to sponsor.',
+    sections: [
+      ['intro', 'Page title and intro'],
+      ['why', 'Why support IRC (navy box)'],
+      ['cta', 'Become a sponsor (bottom, with button)'],
+    ],
+    modules: ['sponsors'],
+  },
+  {
+    slug: 'support', name: 'Individual Support', path: '/support', hint: 'Tiers, the pledge form and supporters.',
+    sections: [
+      ['support', 'Page title and intro'],
+      ['tier-1', 'Green tier card (heading = amount)', `${list} Each item is one benefit.`],
+      ['tier-2', 'Gold tier card (heading = amount)', `${list} Each item is one benefit.`],
+      ['tier-3', 'Platinum tier card (heading = amount)', `${list} Each item is one benefit.`],
+      ['pledge', 'Pledge text and the Google Form button'],
+    ],
+    modules: ['supporters'],
+  },
+  {
+    slug: 'contact', name: 'Contact', path: '/contact', hint: 'Contact details and the message form.',
+    sections: [['intro', 'Page title and intro']],
+    modules: [],
+    alsoShows: [{ module: 'settings', note: 'Email, WhatsApp, address and social links' }],
+  },
+]
+
+export const pageNames: Record<string, string> = Object.fromEntries(sitePages.map((p) => [p.slug, p.name]))
+
+/** The admin page that holds a module's list. */
+export const homeOf = (module: string) => {
+  if (module === 'settings') return '/admin/settings'
+  if (module === 'page-sections') return '/admin/pages'
+  const p = sitePages.find((p) => p.modules.includes(module))
+  return p ? `/admin/pages/${p.slug}#${module}` : '/admin'
+}
+
+export const sectionInfo = (page: string, key: string) => sitePages.find((p) => p.slug === page)?.sections.find((s) => s[0] === key)
 
 // Page sections that actually show a photo or a button on the site. Every other section is heading + text only,
 // so the edit form hides those fields. Keep in sync when a page starts rendering s.<key>.media or .cta_href.
@@ -209,18 +327,11 @@ export const sectionUses = (row: Row, what: 'media' | 'cta') => !!sectionExtras[
 export function fieldsFor(key: string, row: Row): Field[] {
   const fields = modules[key].fields
   if (key !== 'page-sections') return fields
-  return fields.filter((f) => (f.name === 'media_id' ? sectionUses(row, 'media') : f.name.startsWith('cta_') ? sectionUses(row, 'cta') : true))
+  const help = sectionInfo(String(row.page), String(row.key))?.[2]
+  return fields
+    .filter((f) => (f.name === 'media_id' ? sectionUses(row, 'media') : f.name.startsWith('cta_') ? sectionUses(row, 'cta') : true))
+    .map((f) => (f.name === 'body' && help ? { ...f, help: `${help} ${md}` } : f))
 }
-
-export const pageNames: Record<string, string> = {
-  home: 'Home', about: 'About', research: 'Research', 'gallery-news': 'Gallery & News',
-  teams: 'Teams', sponsors: 'Sponsors', support: 'Individual Support', contact: 'Contact',
-}
-
-export const nav: { title: string; items: string[] }[] = [
-  { title: 'Pages', items: ['page-sections'] },
-  { title: 'Content', items: ['research-teams', 'projects', 'competitions', 'entries', 'gallery', 'news', 'people', 'sponsors', 'supporters'] },
-]
 
 // Columns that reference media, for "where is this photo used" and delete checks.
 export const mediaRefs: [table: string, column: string, module: string][] = [

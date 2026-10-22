@@ -1,6 +1,6 @@
 import { inviteUser, removeUser, setRole } from '../../actions'
-import { AdminForm, ConfirmButton } from '@/components/admin'
-import { btnCls, inputCls } from '@/lib/admin'
+import { AdminForm, ConfirmButton, Flash, SubmitButton } from '@/components/admin'
+import { inputCls } from '@/lib/admin'
 import { requireAdmin } from '@/lib/auth'
 import { serviceDb } from '@/lib/supabase'
 
@@ -18,8 +18,7 @@ export default async function Users({ searchParams }: PageProps<'/admin/users'>)
   return (
     <div className="max-w-3xl space-y-8">
       <h1 className="text-3xl font-semibold tracking-[-0.04em] text-navy-900">Accounts</h1>
-      {ok && <p role="status" className="rounded-lg bg-white p-3 font-semibold text-secondary">{String(ok)}</p>}
-      {error && <p role="alert" className="rounded-lg bg-white p-3 font-semibold text-primary-ink">{String(error)}</p>}
+      <Flash ok={ok} error={error} />
 
       <ul className="divide-y divide-navy-200/70 rounded-2xl bg-white border border-navy-200/70">
         {profiles?.map((p) => (
@@ -37,7 +36,7 @@ export default async function Users({ searchParams }: PageProps<'/admin/users'>)
                     <option value="editor">editor</option>
                     <option value="admin">admin</option>
                   </select>
-                  <button className={btnCls}>Update</button>
+                  <SubmitButton>Update</SubmitButton>
                 </form>
                 <form action={removeUser.bind(null, p.id)}>
                   <ConfirmButton message="Remove this account? They will lose admin access.">Remove</ConfirmButton>
